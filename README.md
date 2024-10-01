@@ -48,7 +48,7 @@ To run the executable, do this command.
 
 ## Contributing
 
-### Guidelines for contributing to the project, e.g.:
+### Guidelines for contributing to the project:
 - Clone the repo
 - Create a new branch (`git checkout -b my-branch`)
 - Submit a pull request
