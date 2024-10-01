@@ -1,5 +1,3 @@
-![Alt text](public/uofa.png)
-
 # kay-phos
 Web application in development for measuring potassium (K) and phosphorus
 content in food from your smartphone.
