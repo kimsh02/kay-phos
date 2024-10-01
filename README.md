@@ -46,10 +46,9 @@ To run the executable, do this command.
 ./main
 ```
 
-### 5. **Contributing**
-```markdown
 ## Contributing
-Guidelines for contributing to the project, e.g.:
-- Fork the repo
-- Create a new branch (`git checkout -b feature-branch`)
+
+### Guidelines for contributing to the project, e.g.:
+- Clone the repo
+- Create a new branch (`git checkout -b my-branch`)
 - Submit a pull request
