@@ -1,17 +1,20 @@
 package main
 
 import (
-	"fmt"
+	"log"
+	"net/http"
 
-	"github.com/kimsh02/kay-phos/internal/models"
+	"github.com/kimsh02/kay-phos/internal/config"
+	"github.com/kimsh02/kay-phos/internal/router"
 )
 
 func main() {
-	fmt.Println("hello")
-	p1 := &models.Page{
-		Title: "testpage",
-		Body:  []byte("this is a sample page.")}
-	p1.Save()
-	p2, _ := models.LoadPage("testpage")
-	fmt.Println(string(p2.Body))
+	// set all startup configuration variables
+	config.Init()
+	// set all routes for all handlers
+	router.Init()
+
+	// startup server
+	log.Println("Starting server on :8080")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }
