@@ -5,6 +5,7 @@ content in food from your smartphone.
 ## Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
+- [Contributing](#contributing)
 
 ## Installation
 
@@ -40,7 +41,15 @@ Additionaly, you can natively compile the web application by running the command
 go build cmd/server/main.go
 ```
 
-To run the executable, run this command.
+To run the executable, do this command.
 ```bash
 ./main
 ```
+
+### 5. **Contributing**
+```markdown
+## Contributing
+Guidelines for contributing to the project, e.g.:
+- Fork the repo
+- Create a new branch (`git checkout -b feature-branch`)
+- Submit a pull request
