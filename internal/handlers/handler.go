@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/kimsh02/kay-phos/internal/models"
@@ -17,13 +16,16 @@ func NewHandler() *Handler {
 }
 
 // hi handler
-func (h *Handler) HiHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "hi there, i love %s", r.URL.Path[1:])
-}
+// func (h *Handler) HiHandler(w http.ResponseWriter, r *http.Request) {
+// 	fmt.Fprintf(w, "hi there, i love %s", r.URL.Path[1:])
+// }
 
 // view Page handler
 func (h *Handler) ViewPageHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Path[len("/view/"):]
+	title, err := services.GetTitle(w, r)
+	if err != nil {
+		return
+	}
 	p, err := models.LoadPage(title)
 	if err != nil {
 		http.Redirect(w, r, "/edit/"+title, http.StatusFound)
@@ -34,7 +36,10 @@ func (h *Handler) ViewPageHandler(w http.ResponseWriter, r *http.Request) {
 
 // edit Page handler
 func (h *Handler) EditPageHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Path[len("/edit/"):]
+	title, err := services.GetTitle(w, r)
+	if err != nil {
+		return
+	}
 	p, err := models.LoadPage(title)
 	if err != nil {
 		p = &models.Page{Title: title}
@@ -44,10 +49,13 @@ func (h *Handler) EditPageHandler(w http.ResponseWriter, r *http.Request) {
 
 // save Page handler
 func (h *Handler) SavePageHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.URL.Path[len("/save/"):]
+	title, err := services.GetTitle(w, r)
+	if err != nil {
+		return
+	}
 	body := r.FormValue("body")
 	p := &models.Page{Title: title, Body: []byte(body)}
-	err := p.Save()
+	err = p.Save()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
