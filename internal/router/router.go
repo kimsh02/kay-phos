@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/kimsh02/kay-phos/internal/handlers"
+	"github.com/kimsh02/kay-phos/internal/services"
 )
 
 // initalize routes for all handlers
@@ -12,7 +13,7 @@ func Init() {
 	h := handlers.NewHandler()
 
 	// http.HandleFunc("/", h.HiHandler)
-	http.HandleFunc("/view/", h.ViewPageHandler)
-	http.HandleFunc("/edit/", h.EditPageHandler)
-	http.HandleFunc("/save/", h.SavePageHandler)
+	http.HandleFunc("/view/", services.MakeHandler(h.ViewPageHandler))
+	http.HandleFunc("/edit/", services.MakeHandler(h.EditPageHandler))
+	http.HandleFunc("/save/", services.MakeHandler(h.SavePageHandler))
 }
