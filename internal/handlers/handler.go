@@ -15,6 +15,11 @@ func NewHandler() *Handler {
 	return &Handler{}
 }
 
+// redirect root handler
+func (h *Handler) RootHandler(w http.ResponseWriter, r *http.Request, title string) {
+	http.Redirect(w, r, "/view/FrontPage", http.StatusFound)
+}
+
 // view Page handler
 func (h *Handler) ViewPageHandler(w http.ResponseWriter, r *http.Request, title string) {
 	p, err := models.LoadPage(title)
