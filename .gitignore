@@ -28,5 +28,5 @@ main
 app
 
 foods
-.csv
-.xlsx
+*.csv
+*.xlsx
