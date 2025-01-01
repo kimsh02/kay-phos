@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/kimsh02/kay-phos/internal/router"
+	"github.com/kimsh02/kay-phos/server/basic/internal/router"
 )
 
 func main() {

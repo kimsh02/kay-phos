@@ -3,8 +3,8 @@ package router
 import (
 	"net/http"
 
-	"github.com/kimsh02/kay-phos/internal/handlers"
-	"github.com/kimsh02/kay-phos/internal/services"
+	"github.com/kimsh02/kay-phos/server/basic/internal/handlers"
+	"github.com/kimsh02/kay-phos/server/basic/internal/services"
 )
 
 // initalize routes for all handlers

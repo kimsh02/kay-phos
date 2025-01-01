@@ -1,11 +1,15 @@
-// package main
+package main
 
-// import "github.com/gin-gonic/gin"
+import "github.com/gin-gonic/gin"
 
-// func main() {
+func main() {
 
-// 	// gin framework server start and run
-// 	r := gin.Default()
-// 	// default port 8080
-// 	r.Run()
-// }
+	// gin framework server start and run
+	router := gin.Default()
+
+	// endpoint path to get albums
+	router.GET("/albums", GetAlbums)
+
+	// default port 8080
+	router.Run("localhost:8080")
+}

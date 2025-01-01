@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/kimsh02/kay-phos/internal/path"
+	"github.com/kimsh02/kay-phos/server/basic/internal/path"
 )
 
 // a Page in our web app

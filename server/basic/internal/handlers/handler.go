@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/kimsh02/kay-phos/internal/models"
-	"github.com/kimsh02/kay-phos/internal/services"
+	"github.com/kimsh02/kay-phos/server/basic/internal/models"
+	"github.com/kimsh02/kay-phos/server/basic/internal/services"
 )
 
 // define one Handler type that contains all handler functions
