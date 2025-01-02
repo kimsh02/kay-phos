@@ -1,5 +1,30 @@
 #!/bin/zsh
 
+# Check if Homebrew is installed
+if ! command -v brew &> /dev/null
+then
+    echo "Homebrew not found. Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+else
+    echo "Homebrew is already installed."
+fi
+
+# Check if PostgreSQL is installed
+if ! command -v psql &> /dev/null
+then
+    echo "PostgreSQL not found. Installing PostgreSQL..."
+    brew install postgresql
+else
+    echo "PostgreSQL is already installed."
+fi
+
+# Optionally, start PostgreSQL service if it's installed
+if command -v psql &> /dev/null
+then
+    echo "Starting PostgreSQL service..."
+    brew services start postgresql
+fi
+
 # install python helper tools
 pip install xlsx2csv csvkit
 

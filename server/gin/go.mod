@@ -1,4 +1,4 @@
-module server/gin
+module github.com/kimsh02/kay-phos/server/gin
 
 go 1.23.4
 
