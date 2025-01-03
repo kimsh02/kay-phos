@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/kimsh02/kay-phos/server/gin/internal/handlers"
 )
 
 func NewRouter() *gin.Engine {
@@ -31,4 +32,14 @@ func NewRouter() *gin.Engine {
 	// router.Use(static.Serve("/", static.LocalFile("./public/", true)))
 
 	return router
+}
+
+func InitRoutes(router *gin.Engine) {
+	// Setup route group for the API
+	api := router.Group("/api")
+	{
+		api.GET("/albums", handlers.GetAlbums)
+		api.POST("/albums", handlers.PostAlbums)
+		api.GET("/albums/:id", handlers.GetAlbumByID)
+	}
 }

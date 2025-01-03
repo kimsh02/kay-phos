@@ -6,27 +6,26 @@ import (
 	"os"
 	"time"
 
-	"github.com/kimsh02/kay-phos/server/gin/internal/api"
 	"github.com/kimsh02/kay-phos/server/gin/internal/router"
 )
 
 func main() {
-
+	// Initialize HTTP port
 	httpPort := os.Getenv("API_PORT")
 	if httpPort == "" {
 		httpPort = "8080"
 	}
 
 	// Initialize router
-	router := router.NewRouter()
+	r := router.NewRouter()
 
 	// Initialize APIs
-	api.InitAPIs(router)
+	router.InitRoutes(r)
 
 	// Create server with timeout
 	srv := &http.Server{
 		Addr:    ":" + httpPort,
-		Handler: router,
+		Handler: r,
 		// set timeout due CWE-400 - Potential Slowloris Attack
 		ReadHeaderTimeout: 5 * time.Second,
 	}
@@ -35,18 +34,9 @@ func main() {
 		log.Printf("Failed to start server: %v", err)
 	}
 
-	// gin framework server start and run
-	// r := gin.Default()
-
 	// do not trust any proxies
 	// r.SetTrustedProxies(nil)
 
-	// initialize routes
-	// router.InitRoutes(r)
-
 	// set server to release mode
 	// gin.SetMode(gin.ReleaseMode)
-
-	// default port 8080
-	// r.Run("localhost:8080")
 }
