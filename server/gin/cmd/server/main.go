@@ -10,26 +10,36 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/kimsh02/kay-phos/server/gin/internal/handlers"
 	"github.com/kimsh02/kay-phos/server/gin/internal/repositories"
 	"github.com/kimsh02/kay-phos/server/gin/internal/router"
 )
 
 func main() {
+	// Initialize db connection pool
+	dbPool, err := repositories.NewDBConnectionPool()
+	if err != nil {
+		log.Println(err)
+	}
+	defer dbPool.Close()
+	// Ping db to ensure connection for debug
+	pingErr := dbPool.Ping(context.Background())
+	if pingErr != nil {
+		log.Println(pingErr)
+	}
+
+	// Init handler struct
+	app := &handlers.App{DBPool: dbPool}
+	// Initialize router
+	r := router.NewRouter()
+	// Initialize APIs
+	router.InitRoutes(r, app)
+
 	// Initialize HTTP port
 	httpPort := os.Getenv("API_PORT")
 	if httpPort == "" {
 		httpPort = "8080"
 	}
-	// Initialize router
-	r := router.NewRouter()
-	// Initialize APIs
-	router.InitRoutes(r)
-	// Initialize db connection pool
-	dbPool, err := repositories.New_DB_Connection_Pool()
-	if err != nil {
-		log.Println(err)
-	}
-	defer dbPool.Close()
 	// Create server with timeout
 	srv := &http.Server{
 		Addr:    ":" + httpPort,
@@ -44,8 +54,6 @@ func main() {
 		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 			log.Printf("Failed to start server: %v", err)
 		}
-		// Simulate time to close connections
-		// time.Sleep(1 * time.Millisecond)
 		log.Println("Stopped serving new connections.")
 		shutdownChan <- true
 	}()
@@ -53,7 +61,6 @@ func main() {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
-
 	shutdownCtx, shutdownRelease := context.WithTimeout(context.Background(), 3*time.Second)
 	defer shutdownRelease()
 	if err := srv.Shutdown(shutdownCtx); err != nil {
@@ -61,7 +68,6 @@ func main() {
 	}
 	<-shutdownChan
 	log.Println("Server shutting down...")
-	// srv.Shutdown(context.Background())
 
 	// do not trust any proxies
 	// r.SetTrustedProxies(nil)

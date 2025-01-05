@@ -5,7 +5,7 @@ package models
  * Fndds_Food_Item can only be retrieved from the database
  */
 
-type Fndds_Food_Item struct {
+type FnddsFoodItem struct {
 	Description string  `json:"description"`
 	Potassium   float64 `json:"potassium"`
 	Phosphorus  float64 `json:"phosphorus"`

@@ -34,12 +34,13 @@ func NewRouter() *gin.Engine {
 	return router
 }
 
-func InitRoutes(router *gin.Engine) {
+func InitRoutes(router *gin.Engine, app *handlers.App) {
 	// Setup route group for the API
 	api := router.Group("/api")
 	{
 		api.GET("/albums", handlers.GetAlbums)
 		api.POST("/albums", handlers.PostAlbums)
 		api.GET("/albums/:id", handlers.GetAlbumByID)
+		api.GET("/fndds/:query", app.SearchFnddsFoodItems)
 	}
 }
