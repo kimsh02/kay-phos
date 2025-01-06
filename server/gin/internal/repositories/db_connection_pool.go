@@ -32,15 +32,36 @@ func NewDBConnectionPool() (*pgxpool.Pool, error) {
 		return nil, err
 	}
 	config.MaxConns = 50
-	// prepare fndds statement
-	// TODO: ts_rank?
+	// Prepare SQL statements
+	// TODO: ts_rank
 	config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
-		_, err := conn.Prepare(ctx, "fndds_search_query", "select \"Main food description\", \"Phosphorus (mg)\", \"Potassium (mg)\" from fndds_nutrient_values where description @@ to_tsquery('english', $1);")
+		// Prepare fndds search query
+		_, err := conn.Prepare(ctx, "fndds_search_query", "select \"Food code\", \"Main food description\", \"Phosphorus (mg)\", \"Potassium (mg)\" from fndds_nutrient_values where description @@ to_tsquery('english', $1);")
 		if err != nil {
+			log.Println("Prepared statement error.")
 			log.Println(err)
+			return err
 		}
-		return err
+		// Prepare unique username query
+		_, err = conn.Prepare(ctx, "unique_username_query", "select exists(select 1 from users where users.user_name = $1);")
+		if err != nil {
+			log.Println("Prepared statement error.")
+			log.Println(err)
+			return err
+		}
+		// Prepare user insert query
+		_, err = conn.Prepare(ctx, "user_insert_query", "insert into users (first_name, last_name, user_name, user_id, hashed_password) values ($1, $2, $3, $4, $5)")
+		if err != nil {
+			log.Println("Prepared statement error.")
+			log.Println(err)
+			return err
+		}
+		return nil
 	}
+	// Prepare user select statement
+	// config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
+	// 	_, err := conn.Prepare(ctx, "user_search_query", "select")
+	// }
 
 	// Create DB pool
 	dbPool, err := pgxpool.NewWithConfig(context.Background(), config)

@@ -9,24 +9,14 @@ import (
 )
 
 /*
- * fndds_repository is the postgres driver to access fndds food items
+ * fndds_repository interacts with fndds nutrient values table in postgres
  */
 
-// builds ts query from string
-func tsQuery(query string) string {
-	runes := []rune(query)
-	for i := range runes {
-		if runes[i] == ' ' {
-			runes[i] = '&'
-		}
-	}
-	return string(runes)
-}
-
-func FnddsQuery(dbPool *pgxpool.Pool, query string) ([]models.FnddsFoodItem, error) {
+func FnddsQuery(dbPool *pgxpool.Pool, query string) (*[]models.FnddsFoodItem, error) {
 	// Query db
-	rows, err := dbPool.Query(context.Background(), "fndds_search_query", tsQuery(query))
+	rows, err := dbPool.Query(context.Background(), "fndds_search_query", query)
 	if err != nil {
+		log.Println("Error in executing query.")
 		log.Println(err)
 		return nil, err
 	}
@@ -36,7 +26,7 @@ func FnddsQuery(dbPool *pgxpool.Pool, query string) ([]models.FnddsFoodItem, err
 	food_items := make([]models.FnddsFoodItem, 0)
 	for rows.Next() {
 		var fi models.FnddsFoodItem
-		if err := rows.Scan(&fi.Description, &fi.Phosphorus, &fi.Potassium); err != nil {
+		if err := rows.Scan(&fi.FoodCode, &fi.Description, &fi.Phosphorus, &fi.Potassium); err != nil {
 			return nil, err
 		}
 		food_items = append(food_items, fi)
@@ -44,5 +34,5 @@ func FnddsQuery(dbPool *pgxpool.Pool, query string) ([]models.FnddsFoodItem, err
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-	return food_items, nil
+	return &food_items, nil
 }

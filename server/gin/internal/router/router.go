@@ -38,9 +38,15 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 	// Setup route group for the API
 	api := router.Group("/api")
 	{
+		// example
 		api.GET("/albums", handlers.GetAlbums)
 		api.POST("/albums", handlers.PostAlbums)
 		api.GET("/albums/:id", handlers.GetAlbumByID)
+
+		// fndds
 		api.GET("/fndds/:query", app.SearchFnddsFoodItems)
+
+		// users
+		api.POST("/create/user", app.CreateUser)
 	}
 }
