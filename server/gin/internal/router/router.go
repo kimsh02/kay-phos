@@ -28,14 +28,26 @@ func NewRouter() *gin.Engine {
 		c.Next()
 	})
 
-	// Serve frontend static files
-	// router.Use(static.Serve("/", static.LocalFile("./public/", true)))
-
 	return router
 }
 
+func InitStatic(router *gin.Engine) {
+	// Serve frontend js files
+	router.Static("/public/js", "./public/js")
+	// Serve ico
+	router.Static("/public/ico", "./public/ico")
+	// Serve css
+	router.Static("/public/css", "./public/css")
+	// Serve images
+	router.Static("/public/images", "./public/images")
+}
+
 func InitRoutes(router *gin.Engine, app *handlers.App) {
-	// Setup route group for the API
+
+	// Setup entry route
+	router.GET("/", handlers.Login)
+
+	// Setup API routes
 	api := router.Group("/api")
 	{
 		// example
@@ -43,10 +55,12 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 		api.POST("/albums", handlers.PostAlbums)
 		api.GET("/albums/:id", handlers.GetAlbumByID)
 
-		// fndds
-		api.GET("/fndds/:query", app.SearchFnddsFoodItems)
-
 		// users
-		api.POST("/create/user", app.CreateUser)
+		api.GET("/login", app.VerifyUser)
+		api.POST("/new-account", app.CreateUser)
+
+		// fndds
+		// TODO: support json requests
+		api.GET("/fndds/:query", app.SearchFnddsFoodItems)
 	}
 }

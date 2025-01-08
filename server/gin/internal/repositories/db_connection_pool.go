@@ -22,17 +22,7 @@ func getDBUser() string {
 	return strings.TrimSpace(string(output))
 }
 
-func NewDBConnectionPool() (*pgxpool.Pool, error) {
-	// Set connection string
-	dbURL := "postgres://" + getDBUser() + "@localhost/kayphos"
-
-	// Define custom pool configuration
-	config, err := pgxpool.ParseConfig(dbURL)
-	if err != nil {
-		return nil, err
-	}
-	config.MaxConns = 50
-	// Prepare SQL statements
+func prepareSQLStatements(config *pgxpool.Config) {
 	// TODO: ts_rank
 	config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
 		// Prepare fndds search query
@@ -56,12 +46,30 @@ func NewDBConnectionPool() (*pgxpool.Pool, error) {
 			log.Println(err)
 			return err
 		}
+		// Prepare user select query
+		_, err = conn.Prepare(ctx, "user_select_query", "select first_name, last_name, user_id, hashed_password from users where users.user_name = $1;")
+		if err != nil {
+			log.Println("Prepared statement error.")
+			log.Println(err)
+			return err
+		}
 		return nil
 	}
-	// Prepare user select statement
-	// config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
-	// 	_, err := conn.Prepare(ctx, "user_search_query", "select")
-	// }
+}
+
+func NewDBConnectionPool() (*pgxpool.Pool, error) {
+	// Set connection string
+	dbURL := "postgres://" + getDBUser() + "@localhost/kayphos"
+
+	// Define custom pool configuration
+	config, err := pgxpool.ParseConfig(dbURL)
+	if err != nil {
+		return nil, err
+	}
+	config.MaxConns = 50
+
+	// Prepare SQL statements
+	prepareSQLStatements(config)
 
 	// Create DB pool
 	dbPool, err := pgxpool.NewWithConfig(context.Background(), config)

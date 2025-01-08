@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"database/sql"
 	"log"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -21,6 +22,21 @@ func CheckUserNameExists(dbPool *pgxpool.Pool, username *string) bool {
 		log.Println(err)
 	}
 	return exists
+}
+
+// Verify user
+func GetUser(dbPool *pgxpool.Pool, user *models.User) error {
+	row := dbPool.QueryRow(context.Background(), "user_select_query", user.UserName)
+	if err := row.Scan(&user.FirstName, &user.LastName, &user.UserID, &user.HashedPassword); err != nil {
+		if err != sql.ErrNoRows {
+			log.Println("Invalid username.")
+		} else {
+			log.Println("Error scanning username.")
+		}
+		log.Println(err)
+		return err
+	}
+	return nil
 }
 
 // create user in users table

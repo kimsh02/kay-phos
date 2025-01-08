@@ -32,6 +32,8 @@ func main() {
 	app := &handlers.App{DBPool: dbPool}
 	// Initialize router
 	r := router.NewRouter()
+	// Initialize static server
+	router.InitStatic(r)
 	// Initialize APIs
 	router.InitRoutes(r, app)
 

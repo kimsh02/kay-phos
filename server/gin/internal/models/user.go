@@ -25,9 +25,14 @@ func (user *User) SetUserID() {
 	user.UserID = uuid.New()
 }
 
+// verifies login password
+func (user *User) VerifyPassword(password string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(password)) == nil
+}
+
 // Sets hashed password for a newly created User given a password
 func (user *User) SetHashedPassword(password string) error {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MaxCost)
 	if err != nil {
 		log.Println(err)
 		return err

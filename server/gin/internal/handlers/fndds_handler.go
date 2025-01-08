@@ -24,6 +24,7 @@ func tsQuery(query string) string {
 
 func (app *App) SearchFnddsFoodItems(c *gin.Context) {
 	query := c.Param("query")
+	// Query Fndds food items
 	food_items, err := repositories.FnddsQuery(app.DBPool, tsQuery(query))
 	if err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})

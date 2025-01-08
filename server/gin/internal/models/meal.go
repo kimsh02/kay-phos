@@ -7,8 +7,8 @@ import "time"
  * created, updated, or retrieved from the database
  */
 
-type Meal struct {
-	UserID      string    `json:"userid"`
+type FnddsMeal struct {
+	// UserID      string    `json:"userid"`
 	Description string    `json:"description"`
 	Potassium   float64   `json:"potassium"`
 	Phosphorus  float64   `json:"phosphorus"`
