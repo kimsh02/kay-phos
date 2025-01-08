@@ -18,21 +18,22 @@ type User struct {
 	UserName       string    `json:"username"`
 	UserID         uuid.UUID `json:"userid"`
 	HashedPassword string    `json:"hashedpassword"`
+	InputPassword  string    `json:"inputpassword"`
 }
 
-// set user id for a newly created User
+// Set user id for a newly created User
 func (user *User) SetUserID() {
 	user.UserID = uuid.New()
 }
 
-// verifies login password
-func (user *User) VerifyPassword(password string) bool {
-	return bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(password)) == nil
+// Verifies input password against hashed password
+func (user *User) VerifyPassword() bool {
+	return bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(user.InputPassword)) == nil
 }
 
 // Sets hashed password for a newly created User given a password
-func (user *User) SetHashedPassword(password string) error {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MaxCost)
+func (user *User) SetHashedPassword() error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.InputPassword), bcrypt.DefaultCost)
 	if err != nil {
 		log.Println(err)
 		return err

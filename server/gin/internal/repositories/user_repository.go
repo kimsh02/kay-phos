@@ -31,7 +31,7 @@ func GetUser(dbPool *pgxpool.Pool, user *models.User) error {
 		if err != sql.ErrNoRows {
 			log.Println("Invalid username.")
 		} else {
-			log.Println("Error scanning username.")
+			log.Println("Error scanning user.")
 		}
 		log.Println(err)
 		return err

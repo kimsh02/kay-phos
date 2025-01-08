@@ -56,7 +56,7 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 		api.GET("/albums/:id", handlers.GetAlbumByID)
 
 		// users
-		api.GET("/login", app.VerifyUser)
+		api.GET("/login", app.LoginUser)
 		api.POST("/new-account", app.CreateUser)
 
 		// fndds

@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,20 +17,35 @@ func (app *App) userNameExists(username *string) bool {
 	return repositories.CheckUserNameExists(app.DBPool, username)
 }
 
-// verify User trying to log in
-func (app *App) VerifyUser(c *gin.Context) {
+// verify User logging in
+func (app *App) LoginUser(c *gin.Context) {
 	var user models.User
 	// Bind username and password to user model
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	// Verify the user
+	// Basic check if username is empty string
+	if user.UserName == "" {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "No username given."})
+		return
+	}
+	// Basic check if password is empty string
+	if user.InputPassword == "" {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "No password given."})
+		return
+	}
+	// Get user from db
 	if err := repositories.GetUser(app.DBPool, &user); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.IndentedJSON(http.StatusOK, user)
+	// Verify input password
+	if !user.VerifyPassword() {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Password is invalid."})
+		return
+	}
+	c.IndentedJSON(http.StatusOK, gin.H{"message": "Login successful."})
 }
 
 // creates new User with hashed password and generated uuid
@@ -42,20 +56,23 @@ func (app *App) CreateUser(c *gin.Context) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	// Basic check if username is empty string
+	if user.UserName == "" {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "No username given."})
+		return
+	}
 	// check if username already exists
 	if app.userNameExists(&user.UserName) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Username already exists."})
 		return
 	}
 	// Basic check if password is empty string
-	password := c.Param("password")
-	if password == "" {
+	if user.InputPassword == "" {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "No password given."})
 		return
 	}
-	// set user hashed password and uuid
-	log.Println("Password is " + password + ".")
-	if err := user.SetHashedPassword(password); err != nil {
+	// set user hashed user.InputPassword and uuid
+	if err := user.SetHashedPassword(); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
