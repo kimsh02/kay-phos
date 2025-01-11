@@ -24,4 +24,11 @@ go.work.sum
 # env file
 .env
 
+# server
 main
+app
+
+# database
+foods
+*.csv
+*.xlsx

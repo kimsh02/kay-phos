@@ -29,7 +29,10 @@ TODO
 
 ## Usage
 
-To start the server run the command below in the root project directory.
+To start the server run the commands below in the root project directory.
+```bash
+go mod tidy
+```
 ```bash
 go run cmd/server/main.go
 ```
