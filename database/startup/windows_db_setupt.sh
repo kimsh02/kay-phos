@@ -72,19 +72,19 @@ sed -i '1,2d' fndds_data\fndds_nutrient_values.csv
 csvsql --insert --db "postgresql://postgres:localhost@localhost:5432/kayphos" fndds_data\fndds_nutrient_values.csv
 
 # create new column with GIN index on "Main food description" column
-psql -d kayphos -U postgres -f sql_scripts\gin_index.sql
+psql -d kayphos -U postgres -f sql_scripts/gin_index.sql
 
 # create trigram index on "Main food description" column
-psql -d kayphos -U postgres -f sql_scripts\trigram_index.sql
+psql -d kayphos -U postgres -f sql_scripts/trigram_index.sql
 
 # enforce unique on food code column of fndds
-psql -d kayphos -U postgres -f sql_scripts\unique_food_code.sql
+psql -d kayphos -U postgres -f sql_scripts/unique_food_code.sql
 
 # create user table
-psql -d kayphos -U postgres -f sql_scripts\user_table.sql
+psql -d kayphos -U postgres -f sql_scripts/user_table.sql
 
 # create meal table
-psql -d kayphos -U postgres -f sql_scripts\meal_table.sql
+psql -d kayphos -U postgres -f sql_scripts/meal_table.sql
 
 # create user sessions table
-psql -d kayphos -U postgres -f sql_scripts\user_sessions.sql
+psql -d kayphos -U postgres -f sql_scripts/user_sessions.sql
