@@ -32,25 +32,39 @@ dropdb kayphos
 createdb kayphos
 
 # install python helper tools
-pip install xlsx2csv csvkit
+PACKAGES=("xlsx2csv" "csvkit")
+
+# Loop through each package and check if it's installed
+for PACKAGE in "${PACKAGES[@]}"; do
+    if ! pip show "$PACKAGE" > /dev/null 2>&1; then
+        echo "$PACKAGE is not installed. Installing..."
+        pip install "$PACKAGE"
+    else
+        echo "$PACKAGE is already installed."
+    fi
+done
 
 # delete all xlsx files in directory
-rm -rf fndds_data/*.xlsx
+# rm -rf fndds_data/*.xlsx
 
 # delete all csv files in directory
-rm -rf fndds_data/*.csv
+# rm -rf fndds_data/*.csv
 
 # download food item dataset
-curl -o fndds_data/2021-2023%20FNDDS%20At%20A%20Glance%20-%20FNDDS%20Nutrient%20Values.xlsx https://www.ars.usda.gov/ARSUserFiles/80400530/apps/2021-2023%20FNDDS%20At%20A%20Glance%20-%20FNDDS%20Nutrient%20Values.xlsx
+if [ ! -f "fndds_data/2021-2023%20FNDDS%20At%20A%20Glance%20-%20FNDDS%20Nutrient%20Values.xlsx" ]; then
+   curl -o fndds_data/2021-2023%20FNDDS%20At%20A%20Glance%20-%20FNDDS%20Nutrient%20Values.xlsx https://www.ars.usda.gov/ARSUserFiles/80400530/apps/2021-2023%20FNDDS%20At%20A%20Glance%20-%20FNDDS%20Nutrient%20Values.xlsx
+fi
 
 # convert xlsx to csv
-xlsx2csv fndds_data/2021-2023%20FNDDS%20At%20A%20Glance%20-%20FNDDS%20Nutrient%20Values.xlsx fndds_data/fndds_nutrient_values.csv
+if [ ! -f "fndds_data/fndds_nutrient_values.csv " ]; then
+    xlsx2csv fndds_data/2021-2023%20FNDDS%20At%20A%20Glance%20-%20FNDDS%20Nutrient%20Values.xlsx fndds_data/fndds_nutrient_values.csv
+fi
 
 # remove title lines from csv file
 sed -i '' '1,2d' fndds_data/fndds_nutrient_values.csv
 
 # drop all relations in db
-psql -d kayphos -f sql_scripts/drop.sql
+# psql -d kayphos -f sql_scripts/drop.sql
 
 # import csv to postgres
 # TODO: CHANGE STRING TO YOUR POSTGRES DB
@@ -71,3 +85,6 @@ psql -d kayphos -f sql_scripts/user_table.sql
 
 # create meal table
 psql -d kayphos -f sql_scripts/meal_table.sql
+
+# create user sessions table
+psql -d kayphos -f sql_scripts/user_sessions.sql
