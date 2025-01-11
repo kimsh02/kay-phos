@@ -51,11 +51,13 @@ func (app *App) LoginUser(c *gin.Context, user *models.User) {
 	// Generate JWT for user
 	token, err := services.GenerateToken(user)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token."})
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token."})
 		return
 	}
 	// Set token as a secure cookie and return success
-	c.JSON(http.StatusOK, gin.H{"token": token, "message": "Login successful."})
+	// TODO: change for https, change path, change domain
+	c.SetCookie("token", token, 900, "/", "", false, true) // 15 minutes expiration
+	c.IndentedJSON(http.StatusOK, gin.H{"message": "Login successful."})
 }
 
 // creates new User with hashed password and generated uuid

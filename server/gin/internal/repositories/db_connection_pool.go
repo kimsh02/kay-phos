@@ -4,8 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
-	"os/exec"
-	"strings"
+	"os"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,12 +14,12 @@ import (
  * returns db connection pool to postgres
  */
 
-func getDBUser() string {
-	// Get name of user on machine
-	cmd := exec.Command("whoami")
-	output, _ := cmd.Output()
-	return strings.TrimSpace(string(output))
-}
+// func getDBUser() string {
+// 	// Get name of user on machine
+// 	cmd := exec.Command("whoami")
+// 	output, _ := cmd.Output()
+// 	return strings.TrimSpace(string(output))
+// }
 
 func prepareSQLStatements(config *pgxpool.Config) {
 	// TODO: ts_rank
@@ -59,7 +58,8 @@ func prepareSQLStatements(config *pgxpool.Config) {
 
 func NewDBConnectionPool() (*pgxpool.Pool, error) {
 	// Set connection string
-	dbURL := "postgres://" + getDBUser() + "@localhost/kayphos"
+	// dbURL := "postgres://" + getDBUser() + "@localhost/kayphos"
+	dbURL := os.Getenv("DB_CONNECTION_STR")
 
 	// Define custom pool configuration
 	config, err := pgxpool.ParseConfig(dbURL)

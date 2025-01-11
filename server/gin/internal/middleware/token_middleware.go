@@ -18,7 +18,7 @@ func ValidateTokenMiddleware() gin.HandlerFunc {
 		tokenString := c.GetHeader("Authorization")
 		// Abort if empty token
 		if tokenString == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token not provided."})
+			c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": "Authorization token not provided."})
 			c.Abort()
 			return
 		}
@@ -29,7 +29,7 @@ func ValidateTokenMiddleware() gin.HandlerFunc {
 		})
 
 		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token."})
+			c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token."})
 			c.Abort()
 			return
 		}
