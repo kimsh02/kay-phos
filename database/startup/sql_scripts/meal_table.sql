@@ -1,5 +1,5 @@
 CREATE TABLE meals (
-    user_id      UUID UNIQUE NOT NULL,
+    user_id      UUID NOT NULL,
     food_code 	 NUMERIC NOT NULL,
     time         TIMESTAMP NOT NULL,
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(user_id), -- Assuming `users` table exists

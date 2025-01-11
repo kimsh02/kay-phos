@@ -44,21 +44,14 @@ func InitStatic(router *gin.Engine) {
 
 func InitRoutes(router *gin.Engine, app *handlers.App) {
 
-	// Setup entry route
+	// Set entry routes
 	router.GET("/", handlers.Login)
+	router.GET("/login", handlers.MakeUserHandler(app.LoginUser))
+	router.POST("/new-account", handlers.MakeUserHandler(app.CreateUser))
 
-	// Setup API routes
-	api := router.Group("/api")
+	// Set protected routes
+	api := router.Group("/dashboard")
 	{
-		// example
-		api.GET("/albums", handlers.GetAlbums)
-		api.POST("/albums", handlers.PostAlbums)
-		api.GET("/albums/:id", handlers.GetAlbumByID)
-
-		// users
-		api.GET("/login", app.LoginUser)
-		api.POST("/new-account", app.CreateUser)
-
 		// fndds
 		// TODO: support json requests
 		api.GET("/fndds/:query", app.SearchFnddsFoodItems)

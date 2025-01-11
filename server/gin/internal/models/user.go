@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"log"
 
 	"github.com/google/uuid"
@@ -47,6 +48,19 @@ func (user *User) CheckPassword(password string) error {
 	if err := bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(password)); err != nil {
 		log.Println(err)
 		return err
+	}
+	return nil
+}
+
+// Check for empty password or username
+func (user *User) CheckPasswordAndUsername() error {
+	// Basic check if username is empty string
+	if user.UserName == "" {
+		return errors.New("No username given.")
+	}
+	// Basic check if password is empty string
+	if user.InputPassword == "" {
+		return errors.New("No password given.")
 	}
 	return nil
 }
