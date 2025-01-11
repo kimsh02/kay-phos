@@ -54,6 +54,8 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 	{
 		// fndds
 		// TODO: support json requests
+
+		// test
 		api.GET("/fndds/:query", app.SearchFnddsFoodItems)
 	}
 }
