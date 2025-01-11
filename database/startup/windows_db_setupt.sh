@@ -32,7 +32,7 @@ dropdb kayphos -U postgres
 createdb kayphos -U postgres
 
 # install python helper tools
-PACKAGES=("xlsx2csv" "csvkit")
+PACKAGES=("xlsx2csv" "csvkit" "psycopg2")
 
 # Loop through each package and check if it's installed
 for PACKAGE in "${PACKAGES[@]}"; do
@@ -61,7 +61,7 @@ if [ ! -f "fndds_data\fndds_nutrient_values.csv " ]; then
 fi
 
 # remove title lines from csv file
-sed -i '' '1,2d' fndds_data\fndds_nutrient_values.csv
+sed -i '1,2d' fndds_data\fndds_nutrient_values.csv
 
 # drop all relations in db
 # psql -d kayphos -f sql_scripts/drop.sql
