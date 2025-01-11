@@ -69,7 +69,7 @@ sed -i '1,2d' fndds_data\fndds_nutrient_values.csv
 # import csv to postgres
 # TODO: CHANGE STRING TO YOUR POSTGRES DB
 # USER=$(whoami)
-csvsql --insert --db "postgresql://$postgres:localhost@localhost:5432/kayphos" fndds_data\fndds_nutrient_values.csv
+csvsql --insert --db "postgresql://postgres:localhost@localhost:5432/kayphos" fndds_data\fndds_nutrient_values.csv
 
 # create new column with GIN index on "Main food description" column
 psql -d kayphos -U postgres -f sql_scripts\gin_index.sql
