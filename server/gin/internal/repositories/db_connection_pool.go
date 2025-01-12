@@ -45,8 +45,15 @@ func prepareSQLStatements(config *pgxpool.Config) {
 			log.Println(err)
 			return err
 		}
-		// Prepare user select query
-		_, err = conn.Prepare(ctx, "user_select_query", "select first_name, last_name, user_id, hashed_password from users where users.user_name = $1;")
+		// Prepare user select by username query
+		_, err = conn.Prepare(ctx, "user_select_username_query", "select * from users where users.user_name = $1;")
+		if err != nil {
+			log.Println("Prepared statement error.")
+			log.Println(err)
+			return err
+		}
+		// Prepare user select by userid query
+		_, err = conn.Prepare(ctx, "user_select_userid_query", "select * from users where users.user_id = $1;")
 		if err != nil {
 			log.Println("Prepared statement error.")
 			log.Println(err)

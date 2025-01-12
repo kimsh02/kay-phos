@@ -14,9 +14,9 @@ import (
  */
 
 // checks for unique username
-func (app *App) userNameExists(username *string) bool {
-	return repositories.CheckUserNameExists(app.DBPool, username)
-}
+// func (app *App) userNameExists(username *string) bool {
+// 	return repositories.CheckUserNameExists(app.DBPool, username)
+// }
 
 // User handler generator
 func MakeUserHandler(fn func(*gin.Context, *models.User)) gin.HandlerFunc {
@@ -56,14 +56,20 @@ func (app *App) LoginUser(c *gin.Context, user *models.User) {
 	}
 	// Set token as a secure cookie and return success
 	// TODO: change for https, change path, change domain
-	c.SetCookie("token", token, 900, "/", "", false, true) // 15 minutes expiration
-	c.IndentedJSON(http.StatusOK, gin.H{"message": "Login successful."})
+	c.SetCookie("token", token, 900, "/dashboard", "localhost", false, true) // 15 minutes expiration
+	c.Redirect(http.StatusSeeOther, "/dashboard")
+	// c.IndentedJSON(http.StatusOK, gin.H{"message": "Login successful."})
 }
 
 // creates new User with hashed password and generated uuid
 func (app *App) CreateUser(c *gin.Context, user *models.User) {
-	// Check if username already exists in the database
-	if app.userNameExists(&user.UserName) {
+	// Check if username already exists in the database, slightly faster
+	// if app.userNameExists(&user.UserName) {
+	// 	c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Username already exists."})
+	// 	return
+	// }
+	// Check if username already exists in the database, more generic and more overhead
+	if err := repositories.GetUser(app.DBPool, user); err == nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Username already exists."})
 		return
 	}
@@ -78,5 +84,8 @@ func (app *App) CreateUser(c *gin.Context, user *models.User) {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.IndentedJSON(http.StatusCreated, gin.H{"message": "User created successfully."})
+	// Set account created cookie and redirect to login
+	c.SetCookie("accountStatus", "created", 15, "/login", "localhost", false, true) // Expires in 1 minute
+	c.Redirect(http.StatusSeeOther, "/login")
+	// c.IndentedJSON(http.StatusCreated, gin.H{"message": "User created successfully."})
 }

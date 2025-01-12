@@ -50,6 +50,9 @@ done
 # delete all csv files in directory
 # rm -rf fndds_data/*.csv
 
+# create fndds_data directory
+mkdir -p fndds_data
+
 # download food item dataset
 if [ ! -f "fndds_data/2021-2023%20FNDDS%20At%20A%20Glance%20-%20FNDDS%20Nutrient%20Values.xlsx" ]; then
    curl -o fndds_data/2021-2023%20FNDDS%20At%20A%20Glance%20-%20FNDDS%20Nutrient%20Values.xlsx https://www.ars.usda.gov/ARSUserFiles/80400530/apps/2021-2023%20FNDDS%20At%20A%20Glance%20-%20FNDDS%20Nutrient%20Values.xlsx

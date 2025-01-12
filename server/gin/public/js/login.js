@@ -1,47 +1,31 @@
-// document
-// 	.getElementById('login-form')
-// 	.addEventListener('submit', async function (event) {
-// 		event.preventDefault(); // Prevent form from submitting normally
+function getAccountStatus() {
+	let cookieArr = document.cookie.split(';');
 
-// 		const username = document.getElementById('username').value;
-// 		const password = document.getElementById('password').value;
+	// Loop through the cookies array
+	for (let i = 0; i < cookieArr.length; i++) {
+		let cookie = cookieArr[i].trim();
 
-// 		// Prepare the login credentials to send to the server
-// 		const credentials = {
-// 			username: username,
-// 			password: password
-// 		};
+		// Check if the cookie name matches 'accountStatus'
+		if (cookie.startsWith('accountStatus=')) {
+			// Return the value of the cookie (after the '=' sign)
+			console.log(cookie.substring('accountStatus='.length));
+			return cookie.substring('accountStatus='.length);
+		}
+	}
 
-// 		try {
-// 			// // Send login credentials to the server for authentication
-// 			// const response = await fetch('/login', {
-// 			// 	method: 'POST',
-// 			// 	headers: {
-// 			// 		'Content-Type': 'application/json'
-// 			// 	},
-// 			// 	body: JSON.stringify(credentials)
-// 			// });
-// 			// // Parse the response from the server
-// 			// const result = await response.json();
-// 			// // Handle server response
-// 			// if (response.ok) {
-// 			// 	// On success, store the token (if returned) or session info
-// 			// 	document.getElementById('message').textContent =
-// 			// 		'Login successful!';
-// 			// 	document.getElementById('message').style.color = 'green';
-// 			// 	// Redirect or store token here if needed, e.g.:
-// 			// 	// localStorage.setItem('auth_token', result.token);
-// 			// 	window.location.href = '/dashboard'; // Redirect to dashboard after login
-// 			// } else {
-// 			// 	// On error, display the error message
-// 			// 	document.getElementById('message').textContent =
-// 			// 		result.message || 'Invalid username or password';
-// 			// 	document.getElementById('message').style.color = 'red';
-// 			// }
-// 		} catch (error) {
-// 			// console.error('Error:', error);
-// 			// document.getElementById('message').textContent =
-// 			// 	'An error occurred. Please try again later.';
-// 			// document.getElementById('message').style.color = 'red';
-// 		}
-// 	});
+	// Return null if cookie is not found
+	return null;
+}
+window.onload = function () {
+	// var accountStatus = getAccountStatus();
+	getAccountStatus();
+};
+
+// alert(accountStatus);
+// if (accountStatus == 'created') {
+// 	alert('Account created successfully!');
+// } else if (accountStatus == 'not logged in') {
+// 	alert('Please log in.');
+// }
+
+// alert('Your account has been created successfully!');
