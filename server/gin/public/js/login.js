@@ -1,31 +1,63 @@
-function getAccountStatus() {
-	let cookieArr = document.cookie.split(';');
-
-	// Loop through the cookies array
-	for (let i = 0; i < cookieArr.length; i++) {
-		let cookie = cookieArr[i].trim();
-
-		// Check if the cookie name matches 'accountStatus'
-		if (cookie.startsWith('accountStatus=')) {
-			// Return the value of the cookie (after the '=' sign)
-			console.log(cookie.substring('accountStatus='.length));
-			return cookie.substring('accountStatus='.length);
+function getCookieValue(name) {
+	const cookies = document.cookie.split('; ');
+	for (let cookie of cookies) {
+		const [key, value] = cookie.split('=');
+		if (key === name) {
+			return decodeURIComponent(value);
 		}
 	}
-
-	// Return null if cookie is not found
 	return null;
 }
-window.onload = function () {
-	// var accountStatus = getAccountStatus();
-	getAccountStatus();
-};
 
-// alert(accountStatus);
-// if (accountStatus == 'created') {
-// 	alert('Account created successfully!');
-// } else if (accountStatus == 'not logged in') {
-// 	alert('Please log in.');
-// }
+function waitForCookie(name, callback, interval = 100) {
+	const checkCookie = setInterval(() => {
+		const value = getCookieValue(name);
+		if (value !== null) {
+			clearInterval(checkCookie);
+			callback(value);
+		}
+	}, interval);
+}
 
-// alert('Your account has been created successfully!');
+// Usage
+waitForCookie('accountStatus', (value) => {
+	console.log('Account Status:', value);
+	if (value === 'not+logged+in') {
+		alert('Please log in!');
+	}
+});
+
+document
+	.getElementById('login-form')
+	.addEventListener('submit', async function (event) {
+		event.preventDefault();
+
+		const formData = {
+			username: document.getElementById('username').value,
+			inputpassword: document.getElementById('password').value
+		};
+
+		console.log(formData);
+
+		try {
+			const response = await fetch('/', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(formData)
+			});
+
+			if (response.ok) {
+				if (response.redirected) {
+					window.location.href = response.url;
+				}
+			} else {
+				// Handle login failure by parsing JSON response
+				const result = await response.json();
+				alert(result.error); // Show error message
+			}
+		} catch (error) {
+			console.error('Error:', error);
+		}
+	});

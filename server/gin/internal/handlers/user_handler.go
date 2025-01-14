@@ -85,7 +85,7 @@ func (app *App) CreateUser(c *gin.Context, user *models.User) {
 		return
 	}
 	// Set account created cookie and redirect to login
-	c.SetCookie("accountStatus", "created", 15, "/login", "localhost", false, true) // Expires in 1 minute
+	c.SetCookie("accountStatus", "created", 5, "/login", "localhost", false, false)
 	c.Redirect(http.StatusSeeOther, "/login")
 	// c.IndentedJSON(http.StatusCreated, gin.H{"message": "User created successfully."})
 }

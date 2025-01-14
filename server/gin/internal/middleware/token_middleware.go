@@ -19,7 +19,7 @@ func ValidateTokenMiddleware() gin.HandlerFunc {
 		// Abort if empty token
 		if err != nil {
 			// c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-			c.SetCookie("accountStatus", "not logged in", 15, "/", "localhost", false, true) // Expires in 1 minute
+			c.SetCookie("accountStatus", "not logged in", 5, "/", "localhost", false, false)
 			c.Redirect(http.StatusSeeOther, "/")
 			c.Abort()
 			return
@@ -32,7 +32,7 @@ func ValidateTokenMiddleware() gin.HandlerFunc {
 
 		if err != nil || !token.Valid {
 			// c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token."})
-			c.SetCookie("accountStatus", "session expired", 15, "/", "localhost", false, true) // Expires in 1 minute
+			c.SetCookie("accountStatus", "session expired", 5, "/", "localhost", false, false)
 			c.Redirect(http.StatusSeeOther, "/")
 			c.Abort()
 			return
