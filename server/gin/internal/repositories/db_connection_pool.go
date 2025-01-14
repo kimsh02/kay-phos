@@ -4,8 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
-	"os/exec"
-	"strings"
+	"os"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,12 +14,12 @@ import (
  * returns db connection pool to postgres
  */
 
-func getDBUser() string {
-	// Get name of user on machine
-	cmd := exec.Command("whoami")
-	output, _ := cmd.Output()
-	return strings.TrimSpace(string(output))
-}
+// func getDBUser() string {
+// 	// Get name of user on machine
+// 	cmd := exec.Command("whoami")
+// 	output, _ := cmd.Output()
+// 	return strings.TrimSpace(string(output))
+// }
 
 func prepareSQLStatements(config *pgxpool.Config) {
 	// TODO: ts_rank
@@ -46,8 +45,15 @@ func prepareSQLStatements(config *pgxpool.Config) {
 			log.Println(err)
 			return err
 		}
-		// Prepare user select query
-		_, err = conn.Prepare(ctx, "user_select_query", "select first_name, last_name, user_id, hashed_password from users where users.user_name = $1;")
+		// Prepare user select by username query
+		_, err = conn.Prepare(ctx, "user_select_username_query", "select * from users where users.user_name = $1;")
+		if err != nil {
+			log.Println("Prepared statement error.")
+			log.Println(err)
+			return err
+		}
+		// Prepare user select by userid query
+		_, err = conn.Prepare(ctx, "user_select_userid_query", "select * from users where users.user_id = $1;")
 		if err != nil {
 			log.Println("Prepared statement error.")
 			log.Println(err)
@@ -59,7 +65,8 @@ func prepareSQLStatements(config *pgxpool.Config) {
 
 func NewDBConnectionPool() (*pgxpool.Pool, error) {
 	// Set connection string
-	dbURL := "postgres://" + getDBUser() + "@localhost/kayphos"
+	// dbURL := "postgres://" + getDBUser() + "@localhost/kayphos"
+	dbURL := os.Getenv("DB_CONNECTION_STR")
 
 	// Define custom pool configuration
 	config, err := pgxpool.ParseConfig(dbURL)

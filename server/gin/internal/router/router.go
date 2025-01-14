@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/kimsh02/kay-phos/server/gin/internal/handlers"
+	"github.com/kimsh02/kay-phos/server/gin/internal/middleware"
 )
 
 func NewRouter() *gin.Engine {
@@ -45,17 +46,24 @@ func InitStatic(router *gin.Engine) {
 func InitRoutes(router *gin.Engine, app *handlers.App) {
 
 	// Set entry routes
-	router.GET("/", handlers.Login)
-	router.GET("/login", handlers.MakeUserHandler(app.LoginUser))
+	router.GET("/", handlers.LoginPage)
+	router.POST("/", handlers.MakeUserHandler(app.LoginUser))
+	router.GET("/new-account", handlers.NewAccountPage)
 	router.POST("/new-account", handlers.MakeUserHandler(app.CreateUser))
 
 	// Set protected routes
 	api := router.Group("/dashboard")
 	{
+		// Apply user session middleware
+		api.Use(middleware.ValidateTokenMiddleware())
+
+		api.GET("/", app.DashboardPage)
 		// fndds
 		// TODO: support json requests
-
 		// test
 		api.GET("/fndds/:query", app.SearchFnddsFoodItems)
 	}
+
+	// Invalid paths
+	router.NoRoute(handlers.InvalidPath)
 }

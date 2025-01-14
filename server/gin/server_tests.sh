@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # user_endpoints=("http://localhost:8080/api/login" "http://localhost:8080/api/new-account")
-new_account="http://localhost:8080/api/new-account"
-login="http://localhost:8080/api/login"
+new_account="http://localhost:8080/new-account"
+login="http://localhost:8080/login"
 iterations=100
 
 # Test users

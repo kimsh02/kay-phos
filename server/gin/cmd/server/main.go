@@ -23,10 +23,10 @@ func main() {
 	}
 	defer dbPool.Close()
 	// Ping db to ensure connection for debug
-	pingErr := dbPool.Ping(context.Background())
-	if pingErr != nil {
-		log.Println(pingErr)
-	}
+	// pingErr := dbPool.Ping(context.Background())
+	// if pingErr != nil {
+	// 	log.Println(pingErr)
+	// }
 
 	// Init handler struct
 	app := &handlers.App{DBPool: dbPool}

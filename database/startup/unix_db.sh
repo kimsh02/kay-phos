@@ -32,7 +32,7 @@ dropdb kayphos
 createdb kayphos
 
 # install python helper tools
-PACKAGES=("xlsx2csv" "csvkit")
+PACKAGES=("xlsx2csv" "csvkit" "psycopg2")
 
 # Loop through each package and check if it's installed
 for PACKAGE in "${PACKAGES[@]}"; do
@@ -49,6 +49,9 @@ done
 
 # delete all csv files in directory
 # rm -rf fndds_data/*.csv
+
+# create fndds_data directory
+mkdir -p fndds_data
 
 # download food item dataset
 if [ ! -f "fndds_data/2021-2023%20FNDDS%20At%20A%20Glance%20-%20FNDDS%20Nutrient%20Values.xlsx" ]; then

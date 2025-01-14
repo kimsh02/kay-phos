@@ -15,21 +15,25 @@ import (
 
 func ValidateTokenMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tokenString := c.GetHeader("Authorization")
+		tokenString, err := c.Cookie("token")
 		// Abort if empty token
-		if tokenString == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization token not provided."})
+		if err != nil {
+			// c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			c.SetCookie("accountStatus", "not logged in", 5, "/", "localhost", false, false)
+			c.Redirect(http.StatusSeeOther, "/")
 			c.Abort()
 			return
 		}
-
+		// Verify token
 		claims := &models.Claims{}
 		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 			return services.JwtSecret, nil
 		})
 
 		if err != nil || !token.Valid {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token."})
+			// c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token."})
+			c.SetCookie("accountStatus", "session expired", 5, "/", "localhost", false, false)
+			c.Redirect(http.StatusSeeOther, "/")
 			c.Abort()
 			return
 		}
