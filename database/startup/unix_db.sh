@@ -13,7 +13,7 @@ fi
 if ! command -v psql &> /dev/null
 then
     echo "PostgreSQL not found. Installing PostgreSQL..."
-    brew install postgresql@17
+    brew install postgresql
 else
     echo "PostgreSQL is already installed."
 fi
