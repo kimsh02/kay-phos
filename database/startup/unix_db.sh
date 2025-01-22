@@ -22,7 +22,7 @@ fi
 if command -v psql &> /dev/null
 then
     echo "Starting PostgreSQL service..."
-    brew services start postgresql@17
+    brew services start postgresql
 fi
 
 # drop kayphos database
