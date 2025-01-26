@@ -1,0 +1,34 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./server/gin/public:/kayphos/public
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: "postgresql://postgres:password@db:5432/kayphos"
+  db:
+    image:postgres:17
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: kayphos
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  python-tools:
+    build:
+      context: .
+      dockerfile: Dockerfile-python
+    depends_on:
+      - db
+
+volumes:
+    postgres_data:

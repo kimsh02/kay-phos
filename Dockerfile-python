@@ -1,0 +1,9 @@
+FROM python:latest
+
+WORKDIR /script
+
+COPY database/startup .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+CMD ["./docker_db.sh"]

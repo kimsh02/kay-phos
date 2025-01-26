@@ -1,0 +1,19 @@
+# Ignore Git metadata
+.git
+
+# Ignore Python cache and virtual environments
+__pycache__/
+*.pyc
+*.pyo
+venv/
+
+# Ignore dependency directories
+node_modules/
+*.log
+
+# Ignore local development settings
+.env
+
+# Ignore IDE/editor configuration files
+.vscode/
+*.swp
