@@ -3,10 +3,6 @@
 # make fndds_data directory
 mkdir -p fndds_data
 
-PGHOST="db"
-PGUSER="postgres"
-PGPASSWORD="password"
-
 # drop kayphos database
 dropdb --if-exists $PGDATABASE -U postgres
 
@@ -20,7 +16,7 @@ fi
 
 # convert xlsx to csv
 if [ ! -f "fndds_data\fndds_nutrient_values.csv " ]; then
-    xlsx2csv fndds_data/fndds_data/2021-2023.xlsx fndds_data/fndds_nutrient_values.csv
+    xlsx2csv fndds_data/2021-2023.xlsx fndds_data/fndds_nutrient_values.csv
 fi
 
 # remove title lines from csv file
@@ -46,3 +42,6 @@ psql -d kayphos -U postgres -f sql_scripts/meal_table.sql
 
 # create user sessions table
 psql -d kayphos -U postgres -f sql_scripts/user_sessions.sql
+
+# run server tests
+./server_tests.sh

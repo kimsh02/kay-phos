@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: kayphos
     ports:
       - "8080:8080"
     volumes:
@@ -27,8 +28,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-python
+    container_name: python-tools
     depends_on:
       - db
+      - server
+    environment:
+      PGHOST: db
+      PGUSER: postgres
+      PGPASSWORD: password
+      PGDATABASE: kayphos
 
 volumes:
     postgres_data:

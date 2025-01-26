@@ -20,6 +20,8 @@ func main() {
 	dbPool, err := repositories.NewDBConnectionPool()
 	if err != nil {
 		log.Println(err)
+	} else {
+		log.Println("DB connection successful.")
 	}
 	defer dbPool.Close()
 	// Ping db to ensure connection for debug

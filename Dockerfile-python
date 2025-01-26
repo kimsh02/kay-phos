@@ -1,9 +1,16 @@
 FROM python:latest
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-client && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /script
 
 COPY database/startup .
 
-RUN pip install --no-cache-dir -r requirements.txt
+COPY server/gin/server_tests.sh .
 
-CMD ["./docker_db.sh"]
+RUN pip install -r requirements.txt
+
+CMD ["sh", "./docker_db.sh"]

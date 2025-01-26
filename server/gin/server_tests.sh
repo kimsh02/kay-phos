@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # user_endpoints=("http://localhost:8080/api/login" "http://localhost:8080/api/new-account")
-new_account="http://localhost:8080/new-account"
-login="http://localhost:8080/login"
+new_account="http://server:8080/new-account"
+login="http://server:8080/login"
 iterations=100
 
 # Test users
@@ -32,8 +32,3 @@ for ((i = 0; i < iterations; i++)); do
     echo "User js$i login with incorrect password."
     curl "$login" --request "GET" --data "{\"username\": \"js$i\",\"inputpassword\": \"p\"}"
 done
-
-
-# curl "http://localhost:8080/api/new-account" --request "POST" --data '{"firstname": "Shawn","lastname": "Kim","username": "tkim5","inputpassword": "any"}'
-
-# curl "http://localhost:8080/api/login" --request "GET" --data '{"username": "tkim5","inputpassword": "any"}'

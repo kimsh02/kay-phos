@@ -11,13 +11,15 @@ import (
 func NewRouter() *gin.Engine {
 	// Set the router as the default one shipped with Gin
 	router := gin.Default()
-	expectedHost := "localhost:8080"
+	expectedHosts := []string{"localhost:8080", "server:8080"}
 
 	// Setup Security Headers
 	router.Use(func(c *gin.Context) {
-		if c.Request.Host != expectedHost {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid host header"})
-			return
+		for _, v := range expectedHosts {
+			if c.Request.Host != v {
+				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid host header"})
+				return
+			}
 		}
 		c.Header("X-Frame-Options", "DENY")
 		c.Header("Content-Security-Policy", "default-src 'self'; connect-src *; font-src *; script-src-elem * 'unsafe-inline'; img-src * data:; style-src * 'unsafe-inline';")

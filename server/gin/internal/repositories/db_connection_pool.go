@@ -65,8 +65,7 @@ func prepareSQLStatements(config *pgxpool.Config) {
 
 func NewDBConnectionPool() (*pgxpool.Pool, error) {
 	// Set connection string
-	// dbURL := "postgres://" + getDBUser() + "@localhost/kayphos"
-	dbURL := os.Getenv("DB_CONNECTION_STR")
+	dbURL := os.Getenv("DATABASE_URL")
 
 	// Define custom pool configuration
 	config, err := pgxpool.ParseConfig(dbURL)
