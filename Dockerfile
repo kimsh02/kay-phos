@@ -12,10 +12,17 @@ RUN go build cmd/server/main.go
 # Runtime
 FROM ubuntu:latest
 
+RUN apt-get update && apt-get install -y openssl
+
 WORKDIR /kayphos
 
 COPY --from=builder /kayphos/main .
+COPY entrypoint_server.sh /kayphos
+
+RUN chmod +x /kayphos/entrypoint_server.sh
 
 EXPOSE 8080
 
-CMD ["./main"]
+# CMD ["./main"]
+
+ENTRYPOINT ["/kayphos/entrypoint_server.sh"]

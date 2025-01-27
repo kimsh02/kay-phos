@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 # make fndds_data directory
 mkdir -p fndds_data
@@ -42,6 +42,3 @@ psql -d kayphos -U postgres -f sql_scripts/meal_table.sql
 
 # create user sessions table
 psql -d kayphos -U postgres -f sql_scripts/user_sessions.sql
-
-# run server tests
-./server_tests.sh

@@ -11,15 +11,16 @@ import (
 func NewRouter() *gin.Engine {
 	// Set the router as the default one shipped with Gin
 	router := gin.Default()
-	expectedHosts := []string{"localhost:8080", "server:8080"}
+	expectedHosts := map[string]struct{}{
+		"localhost:8080": {},
+		"server:8080":    {},
+	}
 
 	// Setup Security Headers
 	router.Use(func(c *gin.Context) {
-		for _, v := range expectedHosts {
-			if c.Request.Host != v {
-				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid host header"})
-				return
-			}
+		if _, ok := expectedHosts[c.Request.Host]; !ok {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "Invalid host header " + c.Request.Host})
+			return
 		}
 		c.Header("X-Frame-Options", "DENY")
 		c.Header("Content-Security-Policy", "default-src 'self'; connect-src *; font-src *; script-src-elem * 'unsafe-inline'; img-src * data:; style-src * 'unsafe-inline';")
@@ -50,16 +51,16 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 	// Set entry routes
 	router.GET("/", handlers.LoginPage)
 	router.POST("/", handlers.MakeUserHandler(app.LoginUser))
-	router.GET("/new-account", handlers.NewAccountPage)
-	router.POST("/new-account", handlers.MakeUserHandler(app.CreateUser))
+	router.GET("/new-account/", handlers.NewAccountPage)
+	router.POST("/new-account/", handlers.MakeUserHandler(app.CreateUser))
 
 	// Set protected routes
-	api := router.Group("/dashboard")
+	api := router.Group("/dashboard/")
 	{
 		// Apply user session middleware
 		api.Use(middleware.ValidateTokenMiddleware())
 
-		api.GET("/", app.DashboardPage)
+		api.GET("/", handlers.DashboardPage)
 		// fndds
 		// TODO: support json requests
 		// test

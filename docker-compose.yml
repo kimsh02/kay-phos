@@ -31,7 +31,6 @@ services:
     container_name: python-tools
     depends_on:
       - db
-      - server
     environment:
       PGHOST: db
       PGUSER: postgres
