@@ -56,9 +56,9 @@ func (app *App) LoginUser(c *gin.Context, user *models.User) {
 	}
 	// Set token as a secure cookie and return success
 	// TODO: change for https, change path, change domain
-	c.SetCookie("token", token, 900, "/dashboard", "localhost", false, true) // 15 minutes expiration
-	c.Redirect(http.StatusSeeOther, "/dashboard")
-	// c.IndentedJSON(http.StatusOK, gin.H{"message": "Login successful."})
+	c.SetCookie("token", token, 3600, "/dashboard", "server", false, true) // 60 minutes expiration
+	// c.Redirect(http.StatusSeeOther, "/dashboard")
+	c.IndentedJSON(http.StatusOK, gin.H{"message": "Login successful."})
 }
 
 // creates new User with hashed password and generated uuid
@@ -85,7 +85,7 @@ func (app *App) CreateUser(c *gin.Context, user *models.User) {
 		return
 	}
 	// Set account created cookie and redirect to login
-	c.SetCookie("accountStatus", "created", 5, "/login", "localhost", false, false)
-	c.Redirect(http.StatusSeeOther, "/login")
-	// c.IndentedJSON(http.StatusCreated, gin.H{"message": "User created successfully."})
+	// c.SetCookie("accountStatus", "created", 5, "/login", "localhost", false, false)
+	// c.Redirect(http.StatusSeeOther, "/login")
+	c.IndentedJSON(http.StatusCreated, gin.H{"message": "User created successfully."})
 }

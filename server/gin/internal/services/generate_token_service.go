@@ -17,11 +17,10 @@ var JwtSecret = []byte(os.Getenv("JWT_SECRET"))
 
 // Generate JWT token
 func GenerateToken(user *models.User) (string, error) {
-	expirationTime := time.Now().Add(15 * time.Minute)
 	claims := &models.Claims{
 		UserID: user.UserID.String(),
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(expirationTime),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(5 * time.Second)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}

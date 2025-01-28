@@ -13,10 +13,13 @@ import (
 
 func InvalidPath(c *gin.Context) {
 	// Call token middleware
+	// If user is not logged in, redirect to login
 	middleware.ValidateTokenMiddleware()(c)
-	// If user is logged in, stay on current page
+	// Else, stay on current page
 	if !c.IsAborted() {
-		c.Redirect(http.StatusFound, c.Request.Referer())
+		// log.Println("Redirect from invalid path.")
+		// c.Redirect(http.StatusFound, c.Request.Referer())
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Invalid path."})
 		return
 	}
 }

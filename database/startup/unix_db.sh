@@ -13,7 +13,7 @@ fi
 if ! command -v psql &> /dev/null
 then
     echo "PostgreSQL not found. Installing PostgreSQL..."
-    brew install postgresql
+    brew install postgresql@17
 else
     echo "PostgreSQL is already installed."
 fi
@@ -22,7 +22,7 @@ fi
 if command -v psql &> /dev/null
 then
     echo "Starting PostgreSQL service..."
-    brew services start postgresql
+    brew services start postgresql@17
 fi
 
 # drop kayphos database
