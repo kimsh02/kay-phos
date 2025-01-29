@@ -32,3 +32,5 @@ app
 foods
 *.csv
 *.xlsx
+
+.idea
