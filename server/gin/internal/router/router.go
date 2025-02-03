@@ -61,10 +61,15 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 		api.Use(middleware.ValidateTokenMiddleware())
 
 		api.GET("/", handlers.DashboardPage)
+		api.GET("/manual-food-search/", handlers.ManualFoodSearchPage)
+		api.GET("/ai-food-search/", handlers.AIFoodSearchPage)
+		api.GET("/user-define-meal", handlers.UserDefineMealPage)
+		api.GET("/user-meal-history", handlers.UserMealHistoryPage)
 		// fndds
 		// TODO: support json requests
 		// test
 		api.GET("/fndds/:query", app.SearchFnddsFoodItems)
+
 	}
 
 	// Invalid paths
