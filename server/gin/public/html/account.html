@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account - Kay Phos</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome To Kay Phos!</h1>
+        <h2>Create Account</h2>
+        <form onsubmit="return validateDate()">
+            <label for="first-name">First Name</label>
+            <input type="text" id="first-name" name="first-name" required>
+
+            <label for="last-name">Last Name</label>
+            <input type="text" id="last-name" name="last-name" required>
+
+            <label for="birthdate">Birthdate</label>
+            <input type="date" id="birthdate" name="birthdate" required>
+
+            <label for="doctor-name">Doctor’s Name</label>
+            <input type="text" id="doctor-name" name="doctor-name">
+
+            <label for="doctor-phone">Doctor’s Phone</label>
+            <input type="tel" id="doctor-phone" name="doctor-phone">
+            
+            <div class="button-container">
+                <button type="button" class="back-button">Back</button>
+                <button type="submit" class="submit-button">Submit</button>
+            </div>
+        </form>
+    </div>
+    <!-- make sure user enters valid date -->
+    <script>
+        function validateDate() {
+            const birthdate = document.getElementById('birthdate').value;
+            if (!birthdate) {
+                alert('Please enter a valid birthdate.');
+                return false;
+            }
+            return true;
+        }
+    </script>
+</body>
+</html>
