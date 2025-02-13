@@ -1,0 +1,67 @@
+  #logo{
+    width: 15%;
+    float: left;
+    padding-left: 10px;
+    align-items: center;
+    margin-top: -25px; 
+    padding-right:10px;
+  }
+  header{
+    background: #AB0520;
+    text-align: left;
+    padding-top: 10px;
+    color:white;
+    font-size: 30px;
+    min-height: 125px; 
+  }
+
+  body{
+    place-items: center; 
+  }
+  .login-form {
+    width: 55%; 
+    padding: 30px;
+    margin-top: 50px; 
+  }
+  label{
+    display: block; 
+    margin-bottom: 20px;
+    font-size: 20px;
+  }
+
+  input[type="text"], input[type="password"], textarea {
+    width: 100%; 
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 20px; 
+    background-color: lightgray;
+    font-size: 16px;
+  }
+
+
+  input[type="submit"], button {
+    place-self: center;
+    padding: 15px 25px;
+    background-color: #0C234B;
+    font-size: 15px;
+    color: white;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    display:block;
+  }
+  p{
+    font-size: 50px;
+    font-weight: bolder;
+    color: #1E5288;
+  }
+  .new-user{
+    padding-top: 90px;
+  }
+  .new-user p {
+    text-align: center;
+    font-weight: bold;
+    color: #8B0015;
+    font-size: 25px;
+  }
