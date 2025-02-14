@@ -1,10 +1,24 @@
+console.log("login.js is running!");
+
 function login(event) {
-    event.preventDefault(); // Prevents form submission
+     // Prevent form submission
+    if (event) event.preventDefault();
+    console.log("login function running")
+
+    let username = $('#username').val().trim();
+    let password = $('#password').val().trim();
+
+    // Client-side validation: Check if fields are empty
+    if (!username || !password) {
+        $('#error-message').text("Please enter both username and password.");
+        return;
+    }
 
     let txdata = {
-        username: $('#username').val().toUpperCase(),  
-        inputpassword: $('#inputpassword').val()  
+        username: username.toUpperCase(),  // Convert username to uppercase
+        inputpassword: password
     };
+
 
     $.ajax({
         url: 'http://localhost:8080/',  
@@ -14,20 +28,25 @@ function login(event) {
         dataType: 'json'
     })
     .done(function (data) {
-        console.log("Success:", data);
-        if (data.token) {  
-            localStorage.setItem("token", data.token);  
-            window.location.replace("dashboard.html");
+        console.log("Success response:", data);
+        if (data.message) {  
+            localStorage.setItem("message", data.message);  
+            window.location.replace("public/html/dashboard.html");
         } else {
-            $('#rxData').text("Login failed: No token received.");
+            console.log("Login failed: No message received.");
+            $('#rxData').text("Login failed: No message received.");
         }
     })
-    .fail(function (jqXHR) {
+    .fail(function (jqXHR, textStatus, errorThrown) {
         console.log("AJAX Error:", jqXHR);
-
+        console.log("Text Status:", textStatus);
+        console.log("Error Thrown:", errorThrown);
+        
         let errorMsg = "Invalid request";
+        
         if (jqXHR.status === 400) {
-            // API returns an error message for invalid login
+            // Log the full error response for debugging
+            console.log("Error Response JSON:", jqXHR.responseJSON);
             errorMsg = jqXHR.responseJSON && jqXHR.responseJSON.error 
                         ? jqXHR.responseJSON.error 
                         : "Invalid username or password";
@@ -37,13 +56,22 @@ function login(event) {
             errorMsg = "Unexpected error occurred.";
         }
 
-        $('#rxData').text(errorMsg).css("color", "red"); // Show error message in red
+        $('#rxData').text(errorMsg).css("color", "red");  // Show error message in red
     });
 }
 
 $(function () {
-    $('#submit').click(login);
+    console.log("running here too!");
+    $('#username, #password').on('input', function () {
+        $('#error-message').text("");  // Clear the error message
+    });
+    $('#submit').click(function () {
+        event.preventDefault(); 
+        console.log("submit running!");
+        login(event);
+    });
     $('#button').click(function () {
-        window.location.href = "new-account.html";
+        console.log("button running!");
+        window.location.href = "public/html/new-account.html";
     });
 });
