@@ -27,13 +27,18 @@ function login(event) {
         method: 'POST',
         contentType: 'application/json',  
         data: JSON.stringify(txdata),
-        dataType: 'json'
+        dataType: 'json',
+        //enable cookies in ajax request
+        xhrFields: {
+            withCredentials: true 
+        }
     })
     .done(function (data) {
         //should redirect if correct username and password or send error message if not
         console.log("Success response:", data);
         if (data.message) {  
-            localStorage.setItem("message", data.message);  
+            localStorage.setItem("message", data.message); 
+            //add 500ms delay to change of page after pressing submit 
             setTimeout(() => {
                 window.location.href = "/dashboard";
             }, 500);
