@@ -34,7 +34,9 @@ function login(event) {
         console.log("Success response:", data);
         if (data.message) {  
             localStorage.setItem("message", data.message);  
-            window.location.replace("localhost:8080/dashboard");
+            setTimeout(() => {
+                window.location.href = "/dashboard";
+            }, 500);
         } else {
             console.log("Login failed: No message received.");
             $('#rxData').text("Login failed: No message received.");
@@ -82,6 +84,9 @@ $(function () {
     //button redirects to new-accoung.html
     $('#button').click(function () {
         console.log("button running!");
-        window.location.href = "localhost:8080/new-account";
+        //add 500ms delay to change of page
+        setTimeout(() => {
+            window.location.href = "/new-account";
+        }, 500);
     });
 });
