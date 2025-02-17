@@ -56,7 +56,8 @@ func (app *App) LoginUser(c *gin.Context, user *models.User) {
 	}
 	// Set token as a secure cookie and return success
 	// TODO: change for https, change path, change domain
-	c.SetCookie("token", token, 3600, "/dashboard", "server", false, true) // 60 minutes expiration
+	c.SetCookie("token", token, 3600, "/dashboard/", "server", false, true)
+	c.SetCookie("token", token, 3600, "/dashboard/", "localhost", false, true)
 	// c.Redirect(http.StatusSeeOther, "/dashboard")
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "Login successful."})
 }
