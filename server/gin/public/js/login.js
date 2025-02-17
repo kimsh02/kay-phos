@@ -16,8 +16,8 @@ function login(event) {
     }
 
     let txdata = {
-        //NEED TO CHECK IF SERVER RECIEVES USERNAME AND PASSWORD IN UPPER OR LOWERCASE
-        username: username.toLowerCase(),  // Convert username to uppercase
+
+        username: username, 
         inputpassword: password
     };
 
@@ -34,34 +34,36 @@ function login(event) {
         console.log("Success response:", data);
         if (data.message) {  
             localStorage.setItem("message", data.message);  
-            window.location.replace("public/html/dashboard.html");
+            window.location.replace("localhost:8080/dashboard");
         } else {
             console.log("Login failed: No message received.");
             $('#rxData').text("Login failed: No message received.");
         }
     })
     .fail(function (jqXHR, textStatus, errorThrown) {
-        //error messages in console not viewed by user
         console.log("AJAX Error:", jqXHR);
         console.log("Text Status:", textStatus);
         console.log("Error Thrown:", errorThrown);
-        
+
         let errorMsg = "Invalid request";
-        //checking status through console
-        if (jqXHR.status === 400) {
+        
+        if (jqXHR.status === 400 && jqXHR.responseJSON) {
             console.log("Error Response JSON:", jqXHR.responseJSON);
-            errorMsg = jqXHR.responseJSON && jqXHR.responseJSON.error 
-                        ? jqXHR.responseJSON.error 
-                        : "Invalid username or password";
-                        
+            //checking error
+            if (jqXHR.responseJSON.error === "User not found") {
+                errorMsg = "Wrong username";
+            } else if (jqXHR.responseJSON.error === "Incorrect password") {
+                errorMsg = "Wrong password";
+            } else {
+                errorMsg = "Invalid username or password";
+            }
         } else if (jqXHR.status === 0) {
             errorMsg = "Server not responding. Is it running?";
         } else {
             errorMsg = "Unexpected error occurred.";
         }
-
+        //print out error for incorrect username and password
         $('#rxData').text(errorMsg).css("color", "red"); 
-        //$('#login-error').text(message).show();
     });
 }
 
@@ -80,6 +82,6 @@ $(function () {
     //button redirects to new-accoung.html
     $('#button').click(function () {
         console.log("button running!");
-        window.location.href = "public/html/new-account.html";
+        window.location.href = "localhost:8080/new-account";
     });
 });
