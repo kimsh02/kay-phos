@@ -17,7 +17,7 @@ function login(event) {
 
     let txdata = {
         //NEED TO CHECK IF SERVER RECIEVES USERNAME AND PASSWORD IN UPPER OR LOWERCASE
-        username: username.toUpperCase(),  // Convert username to uppercase
+        username: username.toLowerCase(),  // Convert username to uppercase
         inputpassword: password
     };
 
@@ -53,6 +53,7 @@ function login(event) {
             errorMsg = jqXHR.responseJSON && jqXHR.responseJSON.error 
                         ? jqXHR.responseJSON.error 
                         : "Invalid username or password";
+                        
         } else if (jqXHR.status === 0) {
             errorMsg = "Server not responding. Is it running?";
         } else {
@@ -60,6 +61,7 @@ function login(event) {
         }
 
         $('#rxData').text(errorMsg).css("color", "red"); 
+        //$('#login-error').text(message).show();
     });
 }
 
