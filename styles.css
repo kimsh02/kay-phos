@@ -6,7 +6,7 @@
 }
 
 .navbar {
-  background: blue;
+  background: #AB0520;
   height: 80px;
   display: flex;
   justify-content: center;
@@ -32,7 +32,7 @@
 
 #navbar__logo {
   background-color: #ffffff;
-  background-image: linear-gradient(to top, #ff0844 0%, red 100%);
+  background-image: linear-gradient(to top, #OC234B 0%, red 100%);
   background-size: 100%;
   -webkit-background-clip: text;
   -moz-background-clip: text;
@@ -45,8 +45,13 @@
   font-size: 2rem;
 }
 
+#navbar__logo img {
+  height: 60px;
+  width: 60px;
+}
+
 .blue-text {
-  color: blue; /* Set the text color to blue */
+  color: #0C234B; /* Set the text color to blue */
 }
 
 
@@ -67,7 +72,7 @@
 
 .navbar__links {
   color: #fff; /* Text color (white) */
-  background: red; /* Set background color to red */
+  background: #AB0520; /* Set background color to red */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -97,12 +102,12 @@
   border: none;
   outline: none;
   border-radius: 4px;
-  background:red;
+  background:#AB0520;
   color: #fff;
 }
 
 .button:hover {
-  background: #4837ff;
+  background: #0C234B;
   transition: all 0.3s ease;
 }
 
@@ -135,7 +140,7 @@
   }
 
   .navbar__menu.active {
-    background: #131313;
+    background: #FFF;
     top: 100%;
     opacity: 1;
     transition: all 0.5s ease;
@@ -173,7 +178,7 @@
   }
 
   .navbar__btn {
-    padding-bottom: 2rem;
+    padding-bottom: 3 rem;
   }
 
   .button {
@@ -411,6 +416,7 @@
 
 .services__card h2 {
   position: absolute;
+  text-align: center;
   top: 350px;
   left: 30px;
 }
@@ -427,7 +433,7 @@
   border: none;
   outline: none;
   border-radius: 4px;
-  background: red;
+  background: #AB0520;
   position: absolute;
   top: 440px;
   left: 30px;
@@ -436,7 +442,7 @@
 
 .services__card button:hover {
   cursor: pointer;
-  background: darkred;
+  background: #0C234B;
 }
 
 .services__card:hover {
