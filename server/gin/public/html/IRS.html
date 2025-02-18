@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset = "utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE = edge">
+    <meta name="viewport" content="width = device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/IRS.css">
+    <title>Image Recognition System</title>
+</head>
+<body>
+    <main class="app">
+        <div class="header">
+            <h2>Upload Image</h2>
+            <div class="server-message"></div>
+        </div>
+        <div class="input-div">
+            <p>Drag & drop images here or <span class="browse">Browse</span></p>
+            <input type="file" class="file" accept="image/png, image/jpeg, image/jpg">
+        </div>
+        <form id="queued-form">
+            <div class="header">
+                <h3>Queued in Frontend</h3>
+                <button type="submit">Upload</button>
+            </div>
+            <div class="queued-div"></div>
+        </form>
+    </main>
+
+    <script>
+        let queuedImageArray = [],
+            queuedForm = document.querySelector("#queued-form"),
+            queuedDiv = document.querySelector(".queued-div"),
+            inputDiv = document.querySelector(".input-div"),
+            input = document.querySelector(".input-div input"),
+            serverMessage = document.querySelector(".server-message"),
+            deleteImages =[];
+
+            //QUEUED IN FRONTEND IMAGE
+            input.addEventListener("change", ()=>{
+            const files = input.files;
+            for(let i = 0; i < files.length; i++) {
+                queuedImageArray.push(files[i]);
+            }
+            queuedForm.reset();
+            displayQueuedImages();
+        })
+
+        inputDiv.addEventListener("drop", (e)=>{
+            e.preventDefault();
+            const files = e.dataTrasnfer.files;
+            for(let i = 0; i < files.length; i++) {
+                if (!files.type.match("image")) continue
+                if (queuedImageArray.every(image => image.name !==file[i].name))
+                    queuedImageArray.push(files[i])
+            }
+            displayQueuedImages();
+        })
+
+        function displayQueuedImages(){
+                let images = "";
+                queuedImageArray.forEach((image, index) => {
+
+                })
+        }
+
+    </script>
+
+</body>
+</html>
