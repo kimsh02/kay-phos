@@ -8,6 +8,23 @@
     <title>Image Recognition System</title>
 </head>
 <body>
+      <!-- Navbar Section -->
+    <nav class="navbar">
+      <div class="navbar__container">
+        <a href="/" id="navbar__logo">Kay-Phos</a>
+        <div class="navbar__toggle" id="mobile-menu">
+          <span class="bar"></span> <span class="bar"></span>
+          <span class="bar"></span>
+        </div>
+        <ul class="navbar__menu">
+          <li class="navbar__btn"><a href="/" class="button">History</a></li>
+          <li class="navbar__btn"><a href="/" class="button">AI</a></li>
+          <li class="navbar__btn"><a href="/" class="button">Search</a></li>
+          <li class="navbar__btn"><a href="/" class="button">Meal</a></li>
+        </ul>
+      </div>
+    </nav>
+
     <main class="app">
         <div class="header">
             <h2>Upload Image</h2>
@@ -25,6 +42,7 @@
             <div class="queued-div"></div>
         </form>
     </main>
+
 
     <script>
         let queuedImageArray = [],
@@ -45,22 +63,34 @@
             displayQueuedImages();
         })
 
-        inputDiv.addEventListener("drop", (e)=>{
+        inputDiv.addEventListener("drop", (e) => {
             e.preventDefault();
-            const files = e.dataTrasnfer.files;
+            const files = e.dataTransfer.files;
             for(let i = 0; i < files.length; i++) {
-                if (!files.type.match("image")) continue
-                if (queuedImageArray.every(image => image.name !==file[i].name))
-                    queuedImageArray.push(files[i])
+                if (files[i].type.startsWith('image/')) {
+                    if (queuedImageArray.every(image => image.name !== files[i].name)) {
+                        queuedImageArray.push(files[i]);
+                    }
+                }
             }
             displayQueuedImages();
-        })
+        });
+
 
         function displayQueuedImages(){
-                let images = "";
+                let images = ""
                 queuedImageArray.forEach((image, index) => {
-
+                    images += `<div class="image">
+                                <img src="${URL.createObjectURL(image)}" alt="image">
+                                <span onclick="deleteQueuedImage(${index})">&times;</span>
+                                </div>`
                 })
+            queuedDiv.innerHTML = images
+        }
+
+        function deleteQueuedImage(index){
+                queuedImageArray.splice(index, 1)
+                displayQueuedImages()
         }
 
     </script>
