@@ -1,3 +1,34 @@
-<html>
-<p>hello! this is perla!</p>
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>User Log In</title>
+        <link rel="icon" href="favicon.ico" type="image/x-icon"> 
+        <link href="/public/css/login.css" rel="stylesheet">
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    </head>
+    <body>
+        <header>
+            <h1>Kay-Phos<img id= "logo" src="/public/images/logo.jpg" alt="university of arizona logo"></h1>
+        </header>
+        
+        <p>Log in</p>
+        <form class="login-form">
+            <label for="username">Username:</label> 
+            <input type="text" id="username" name="username" autocomplete="on">
+            <label for="password">Password:</label> 
+            <input type="password" id="password" name="password">
+    
+            <input type="submit" id= "submit" value="Submit">
+        </form>
+        <div id="error-message" style="color: red; margin-top: 10px;"></div>
+        <!-- <div id="login-error" style="color: red; font-weight: bold;"></div> -->
+        <div id="rxData" style="color: red; font-weight: bold;"></div>
+
+        <div class="new-user">
+            <p>New User?</p>
+            <button type="button" id="button">Sign up now!</button>
+        </div>
+        <script src="/public/js/login.js"></script>
+    </body>
 </html>
