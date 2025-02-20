@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset = "utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE = edge">
+    <meta name="viewport" content="width = device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/ai-food-search.css">
+    <title>Image Recognition System</title>
+</head>
+<body>
+      <!-- Navbar Section -->
+    <nav class="navbar">
+      <div class="navbar__container">
+        <a href="/" id="navbar__logo">Kay-Phos</a>
+        <div class="navbar__toggle" id="mobile-menu">
+          <span class="bar"></span> <span class="bar"></span>
+          <span class="bar"></span>
+        </div>
+        <ul class="navbar__menu">
+          <li class="navbar__btn"><a href="/" class="button">History</a></li>
+          <li class="navbar__btn"><a href="/" class="button">AI</a></li>
+          <li class="navbar__btn"><a href="/" class="button">Search</a></li>
+          <li class="navbar__btn"><a href="/" class="button">Meal</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <main class="app">
+        <div class="header">
+            <h2>Upload Image</h2>
+            <div class="server-message"></div>
+        </div>
+        <div class="input-div">
+            <p>Drag & drop images here or <span class="browse">Browse</span></p>
+            <input type="file" class="file" accept="image/png, image/jpeg, image/jpg">
+        </div>
+        <form id="queued-form">
+            <div class="header">
+                <h3>Queued in Frontend</h3>
+                <button type="submit">Upload</button>
+            </div>
+            <div class="queued-div"></div>
+        </form>
+    </main>
+
+    <!-- Link to external JavaScript file -->
+    <script src="/js/ai-food-search.js"></script>
+</body>
+</html>
