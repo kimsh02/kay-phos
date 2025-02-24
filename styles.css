@@ -66,6 +66,16 @@
   text-align: center;
 }
 
+.navbar__btn .button {
+  color: white; /* Set text color to white */
+  text-decoration: none;
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  font-size: 16px;
+  background-color: #AB0520; /* Set background color to red */
+}
+
 .navbar__item {
   height: 80px;
 }
@@ -89,21 +99,23 @@
   align-items: center;
   padding: 0 1rem;
   width: 100%;
+  color: #fff;
 }
 
 .button {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-decoration: none;
-  padding: 10px 20px;
-  height: 100%;
-  width: 100%;
+  display: block;
+  width: 100%; /* Set the button width to 100% of the card */
+  height: 100%; /* Set the button height to 100% of the card */
+  padding: 0;
   border: none;
-  outline: none;
-  border-radius: 4px;
-  background:#AB0520;
-  color: #fff;
+  background: none;
+}
+
+.button-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensure the image covers the button area without distortion */
+  display: block;
 }
 
 .button:hover {
@@ -139,6 +151,16 @@
     z-index: -1;
   }
 
+  .navbar__btn:first-child {
+    margin-top: 10px; /* Adds space above the first item */
+  }
+
+  .navbar__btn {
+    margin-right: 0;
+    margin-bottom: 10px; /* Adds space between menu items */
+    width: 100%;
+    text-align: center;
+  }
   .navbar__menu.active {
     background: #FFF;
     top: 100%;
@@ -308,6 +330,13 @@
   width: 80%;
 }
 
+@media (max-width: 768px) {
+  /* Hide the heading text when the webpage is shrunk */
+  .services__card h2 {
+    display: none;
+  }
+}
+
 /* Mobile Responsive */
 @media screen and (max-width: 768px) {
   .main__container {
@@ -352,21 +381,19 @@
 }
 
 /* Services Section */
-.services {
-  background: #ffffff;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
 .services__container {
   display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  position: relative;
-  flex-direction: -20px;
+  flex-wrap: wrap; /* Allows wrapping to the next line if needed */
+  justify-content: center; /* Center-aligns the items */
+  gap: 10px; /* Adjust the gap as needed for spacing between cards */
+}
+
+.services__card {
+  flex: 1 1 20%; /* Ensures four cards fit in a row */
+  max-width: 20%; /* Adjusts the card width */
+  box-sizing: border-box; /* Includes padding and border in the element's total width and height */
+  text-align: center; /* Center-align the text and image */
+  margin-bottom: 10px; /* Adds space below each card */
 }
 
 .services__card {
@@ -374,12 +401,7 @@
   height: 300px; /* Original height */
   width: 200px; /* Original width */
   border-radius: 4px;
-  background-image: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0) 0%,
-      rgba(17, 17, 17, 0.6) 100%
-    ),
-    url('/images/graph.png');
+  background-image: none;
   background-size: cover;
   position: relative;
   color: #fff;
@@ -390,28 +412,13 @@
 }
 
 .services__card:nth-child(2) {
-  background-image: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0) 0%,
-      rgba(17, 17, 17, 0.9) 100%
-    ),
-    url('/images/AI.jpg');
+  background-image: none;
 }
 .services__card:nth-child(3) {
-  background-image: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0) 0%,
-      rgba(17, 17, 17, 0.9) 100%
-    ),
-    url('/images/Search.jpg');
+  background-image: none;
 }
 .services__card:nth-child(4) {
-  background-image: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0) 0%,
-      rgba(17, 17, 17, 0.9) 100%
-    ),
-    url('/images/Manual.jpg');
+  background-image: none;
 }
 
 .services__card h2 {
