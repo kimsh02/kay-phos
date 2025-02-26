@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!--
-      Site created by Brian Design on youtube @ www.youtube.com/channel/UCsKsymTY_4BYR-wytLjex7A?view_as=subscriber
-    -->
+   
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HTML CSS Website</title>
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="dashboard.css" />
     <link
       rel="stylesheet"
       href="https://use.fontawesome.com/releases/v5.14.0/css/all.css"
@@ -23,45 +21,60 @@
     <!-- Navbar Section -->
     <nav class="navbar">
       <div class="navbar__container">
-        <a href="/" id="navbar__logo">Kay-Phos</a>
+        <a href="/" id="navbar__logo">
+          <img src="images/UofA.png" alt="New Logo" style="height: 50px; width: 50px; margin-right: 15px;">
+          Kay-Phos
+        </a>
         <div class="navbar__toggle" id="mobile-menu">
           <span class="bar"></span> <span class="bar"></span>
           <span class="bar"></span>
         </div>
         <ul class="navbar__menu">
-          <li class="navbar__btn"><a href="/" class="button">History</a></li>
-          </li>
-          <li class="navbar__btn"><a href="/" class="button">AI</a></li>
-          </li>
-          <li class="navbar__btn"><a href="/" class="button">Search</a></li>
-          </li>
-          <li class="navbar__btn"><a href="/" class="button">Meal</a></li>
+          <li class="navbar__btn">
+            <button onclick="location.href='http://localhost:8000/dashboard/user-meal-history'" class="button">History</button>
+        </li>
+          <li class="navbar__btn">
+            <button onclick="location.href='http://localhost:8000/dashboard/ai-food-search'" class="button">AI</button>
+        </li>
+          <li class="navbar__btn">
+            <button onclick="location.href='http://localhost:8000/dashboard/manual-food-search'" class="button">Search</button>
+        </li>
+          <li class="navbar__btn">
+            <button onclick="location.href='http://localhost:8000/dashboard/user-define-meal'" class="button">Meal</button>
+        </li>
         </ul>
+
       </div>
     </nav>
 
     <!-- Services Section -->
     <div class="services">
       <div class="services__container">
-        <div class="services__card">
-          <h2 class="blue-text">User Meal History</h2>
-          <button>History</button>
-        </div>
-        <div class="services__card">
-          <h2 class="blue-text">AI Food</h2>
-          <button>AI</button>
-        </div>
-        <div class="services__card">
-          <h2 class="blue-text">Manual Search</h2>
-          <button>Search</button>
-        </div>
-        <div class="services__card">
-          <h2 class="blue-text">User Manual Entry</h2>
-          <button>Meal</button>
-        </div>
+        <div class="services__container">
+          <div class="services__card">
+            <h2 class="blue-text">User Meal History</h2>
+            <a href="http://localhost:8000/dashboard/user-meal-history" class="button">
+              <img src="images/graph.png" alt="History Icon" class="button-image">
+            </a>
+          </div>
+          <div class="services__card">
+            <h2 class="blue-text">AI Food</h2>
+            <a href="http://localhost:8000/dashboard/ai-food-search" class="button">
+              <img src="images/AI.jpg" alt="AI Icon" class="button-image">
+            </a>
+          </div>
+          <div class="services__card">
+            <h2 class="blue-text">Manual Search</h2>
+            <a href="http://localhost:8000/dashboard/manual-food-search" class="button">
+              <img src="images/Search.jpg" alt="Search Icon" class="button-image">
+            </a>
+          </div>
+          <div class="services__card">
+            <h2 class="blue-text">User Manual Entry</h2>
+            <a href="http://localhost:8000/dashboard/user-define-meal" class="button">
+              <img src="images/Manual.jpg" alt="Meal Icon" class="button-image">
+            </a>                
       </div>
-    </div>
-
-    <script src="/js/dashboard.js"></script>
+    <script src="app.js"></script>
   </body>
 </html>
