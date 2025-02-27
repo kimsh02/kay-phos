@@ -6,21 +6,12 @@ let queuedImageArray = [],
     input = document.querySelector(".input-div input"),
     serverMessage = document.querySelector(".server-message");
 
-// Your authentication data - TODO store securely
+// Your authentication data - TODO: Store securely
 const authData = {
-    access_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ind0V0V4NmVjc0dGMzZ1N3dfcVlCbyJ9.eyJpc3MiOiJodHRwczovL3Bh" +
-        "c3Npby51cy5hdXRoMC5jb20vIiwic3ViIjoiZVI0bUxVbmNKTVRqbENiWkxZd3ZERlU1cE9SOHE0bldAY2xpZW50cyIsImF1ZCI6InVuaWZpZWQ" +
-        "iLCJpYXQiOjE3Mzk5OTY2MDAsImV4cCI6MTc0MDA4MzAwMCwic2NvcGUiOiJyZWFkOmh1YiB3cml0ZTpodWIiLCJndHkiOiJjbGllbnQtY3JlZG" +
-        "VudGlhbHMiLCJhenAiOiJlUjRtTFVuY0pNVGpsQ2JaTFl3dkRGVTVwT1I4cTRuVyJ9.Z_d7T816-Px0FbnQX-yhS0n-QGZb1TAUBbCzT0Pev2dA" +
-        "B9K2qW3KrxzMhf_T2tMOpYOmoBo6vAFcZRO75lbmR2AOOvRsXULjAWACweuocFhQ46OlzMidXsWspsZWgrdYk9qaVfQfik7GQlDzPyRZcW5E613" +
-        "coS-Tj1ux5eIKVtIqDnZeL3_ifackZOf5Tx_2pQFrMRyAMpj9UvwOiqKsw8mRCtIOBtR7tUw-t6Ow2vkUeFQn2mvIfnQVhDkhOTk6fSD9j1Y4MO" +
-        "tOoE-bu5bAgI9QRzHgSCRAk-WuIYzOKrxVqD3QcFPJB_jJ02PTz8StDZGOLlsMvAZlI9SBSfTTuw..eyJjdXN0b21lcklkIjoiODRmNjI2MTItZ" +
-        "WYwYS0xMWVmLTk5MTktMWU3OTFmMzBmMWQxIiwibGljZW5zZUtleSI6Iml4cnhlanM0anhXS3hWWWprWjFTYVBqUkhQRE5rNExXSGZqMHRqeW0i" +
-        "LCJsaWNlbnNlUHJvZHVjdCI6InVuaWZpZWQifQ==", // Bearer Token
-    customer_id: "YOUR_CUSTOMER_ID_HERE" // Customer ID
+access_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ind0V0V4NmVjc0dGMzZ1N3dfcVlCbyJ9.eyJpc3MiOiJodHRwczovL3Bhc3Npby51cy5hdXRoMC5jb20vIiwic3ViIjoiZVI0bUxVbmNKTVRqbENiWkxZd3ZERlU1cE9SOHE0bldAY2xpZW50cyIsImF1ZCI6InVuaWZpZWQiLCJpYXQiOjE3NDA2MDc4MzIsImV4cCI6MTc0MDY5NDIzMiwic2NvcGUiOiJyZWFkOmh1YiB3cml0ZTpodWIiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJhenAiOiJlUjRtTFVuY0pNVGpsQ2JaTFl3dkRGVTVwT1I4cTRuVyJ9.x5xLEyVYdBC2sFN3QbGmj8OKSYw8NkqXoybcrTQATEgoKZHrkeG1gmOBzl31xtmbqK-cxOfiNXV7P606-Ekt0ly-qd2TA6ExFTgDhulToscn42ANaaYVyNAnNWqnzWEff6GZMD48TEluqc1wkuWnPboPO3qWfW_vnmBSbsbVJxH0sOlDVOsqLRQ902CIeOsoxcz0IEJx48R2Z4n2CF4HS2qRwtYLhvJgkcdVKVsVZWr7_rni2hrPs60klEVGQbFP7cxB-JmQlZap9e2JjJ4Evs1kA7f6mpvDFUjY7Ueft-3a4z0s5V58UnE5NAIL1NN3KaM20V1emt6-yFDizKeWjQ..eyJjdXN0b21lcklkIjoiODRmNjI2MTItZWYwYS0xMWVmLTk5MTktMWU3OTFmMzBmMWQxIiwibGljZW5zZUtleSI6Iml4cnhlanM0anhXS3hWWWprWjFTYVBqUkhQRE5rNExXSGZqMHRqeW0iLCJsaWNlbnNlUHJvZHVjdCI6InVuaWZpZWQifQ==", // Bearer Token    customer_id: "YOUR_CUSTOMER_ID_HERE"
 };
 
-// Store analysis results with refCodes
+// Store analysis results
 let analysisResults = [];
 
 // Ensure input element exists before adding event listener
@@ -33,37 +24,6 @@ if (input) {
         queuedForm.reset();
         displayQueuedImages();
     });
-}
-
-// Handle drag and drop events (ensure inputDiv exists)
-if (inputDiv) {
-    inputDiv.addEventListener("drop", (e) => {
-        e.preventDefault();
-        const files = e.dataTransfer.files;
-        for (let i = 0; i < files.length; i++) {
-            if (files[i].type.startsWith('image/')) {
-                if (queuedImageArray.every(image => image.name !== files[i].name)) {
-                    queuedImageArray.push(files[i]);
-                }
-            }
-        }
-        displayQueuedImages();
-    });
-
-    // Prevent default drag behaviors
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        inputDiv.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    // Add visual feedback for drag events
-    inputDiv.addEventListener('dragenter', () => inputDiv.classList.add('highlight'));
-    inputDiv.addEventListener('dragleave', () => inputDiv.classList.remove('highlight'));
-    inputDiv.addEventListener('drop', () => inputDiv.classList.remove('highlight'));
 }
 
 // Display queued images
@@ -95,28 +55,17 @@ if (queuedForm) {
         }
 
         displayServerMessage("Analyzing images, please wait...", "info");
+        analysisResults = [];
 
         try {
-            const customMetadata = {
-                uploadDate: new Date().toISOString(),
-                uploadBatch: generateBatchId(),
-                deviceInfo: navigator.userAgent
-            };
-
-            const encodedMetadata = btoa(JSON.stringify(customMetadata));
-            analysisResults = [];
-
             for (const image of queuedImageArray) {
-                const result = await uploadAndAnalyzeImage(image, encodedMetadata);
+                const result = await startConversationWithImage(image);
                 analysisResults.push(result);
             }
 
             displayServerMessage(`Successfully processed ${analysisResults.length} images!`, "success");
-            storeRefCodes(analysisResults);
             queuedImageArray = [];
             displayQueuedImages();
-
-            console.log("Analysis results with refCodes:", analysisResults);
 
         } catch (error) {
             console.error("API error:", error);
@@ -125,109 +74,195 @@ if (queuedForm) {
     });
 }
 
-// Generate a unique batch ID
-function generateBatchId() {
-    return 'batch_' + Date.now() + '_' + Math.random().toString(36).slice(2, 11);
-}
+// Upload image and start conversation
+async function startConversationWithImage(imageFile) {
+    console.log("📤 Sending file to API:", imageFile.name);
 
-// Store reference codes in localStorage
-function storeRefCodes(results) {
-    const storedResults = JSON.parse(localStorage.getItem('analysisRefCodes') || '[]');
-    const timestamp = new Date().toISOString();
-    const newEntries = results.map(result => ({
-        refCode: result.refCode,
-        timestamp: timestamp,
-        filename: result.filename || 'unknown'
-    }));
-
-    localStorage.setItem('analysisRefCodes', JSON.stringify([...newEntries, ...storedResults]));
-}
-
-// Upload and analyze a single image (Fixed field name 'video_file')
-async function uploadAndAnalyzeImage(imageFile, encodedMetadata) {
-    //TODO Handle encodedMetaData
     const formData = new FormData();
-    formData.append('image', imageFile); // FIXED: Changed 'image' to 'video_file'
-    formData.append('metadata', encodedMetadata);
-
-    console.log("Uploading image:", imageFile.name);
-    console.log("FormData content:");
-    for (let pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
-    }
+    formData.append("image", imageFile);
 
     const headers = {
-        'Authorization': `Bearer ${authData.access_token}`,
-        //TODO Customer Specific 'Passio-ID': authData.customer_id
+        "Authorization": `Bearer ${authData.access_token.trim()}`,
+        "Content-Type": "application/json"
     };
 
-    const url = `https://api.passiolife.com/v2/products/napi/tools/vision/extractIngredientsAutoTyped`;
+    const url = "https://api.passiolife.com/v2/products/nutrition-advisor/threads";
 
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: headers, // No need to set 'Content-Type' for FormData
-        body: formData
-    });
+    try {
+        const response = await fetch(url, { method: "POST", headers: headers, body: formData });
 
-    if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+        console.log("🔄 API Response Status:", response.status, response.statusText);
+
+        if (!response.ok) {
+            throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log("✅ Thread Created:", result);
+
+        if (result.threadId) {
+            console.log("📝 Sending message to thread...");
+            const messageId = await sendMessageToThread(result.threadId);
+            if (messageId) {
+                console.log("⏳ Running VisualFoodExtraction tool...");
+                await runVisualFoodExtraction(result.threadId, messageId);
+            } else {
+                console.warn("⚠️ No messageId received, cannot run tool.");
+            }
+        } else {
+            console.warn("⚠️ No threadId returned, check API docs.");
+        }
+    } catch (error) {
+        console.error("❌ Error in API request:", error);
     }
-
-    const data = await response.json();
-
-    return {
-        ...data,
-        filename: imageFile.name
-    };
 }
 
-// Retrieve an item using its reference code
-async function retrieveByRefCode(refCode) {
-    if (!refCode) {
-        throw new Error("Invalid reference code");
-    }
-
+async function sendMessageToThread(threadId) {
+    const url = `https://api.passiolife.com/v2/products/nutrition-advisor/threads/${threadId}/messages`;
     const headers = {
-        'Authorization': `Bearer ${authData.access_token}`,
-        'Passio-ID': authData.customer_id
+        "Authorization": `Bearer ${authData.access_token.trim()}`,
+        "Content-Type": "application/json"
+    };
+
+    const requestBody = {
+        "message": "", // Empty message, just to create a valid message entry
+        "inputSensors": ["VisualFoodExtraction"] // Ensure tool is suggested
     };
 
     try {
-        const response = await fetch(`https://api.passiolife.com/v2/reference/${refCode}`, {
-            method: 'GET',
-            headers: headers
+        const response = await fetch(url, {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(requestBody)
         });
 
         if (!response.ok) {
-            throw new Error(`Retrieval failed: ${response.status} ${response.statusText}`);
+            throw new Error(`Error sending message to thread: ${response.status} ${response.statusText}`);
         }
 
-        return await response.json();
+        const result = await response.json();
+        console.log("✅ Message Sent to Thread:", result);
+
+        return result.messageId; // Needed to execute the tool
     } catch (error) {
-        console.error("Error retrieving by refCode:", error);
-        throw error;
+        console.error("❌ Error sending message to thread:", error);
+        return null;
     }
 }
 
-// Decode a reference code and extract metadata
-function decodeRefCode(refCode) {
+
+
+
+async function runVisualFoodExtraction(threadId, messageId) {
+    if (!messageId) {
+        console.error("❌ No messageId available, cannot run VisualFoodExtraction.");
+        return;
+    }
+
+    const url = `https://api.passiolife.com/v2/products/nutrition-advisor/threads/${threadId}/messages`;
+    const headers = {
+        "Authorization": `Bearer ${authData.access_token.trim()}`,
+        "Content-Type": "application/json"
+    };
+
+    const requestBody = {
+        "messageId": messageId,
+        "toolName": "VisualFoodExtraction"
+    };
+
     try {
-        const decodedString = atob(refCode);
-        const decodedObject = JSON.parse(decodedString);
-        return {
-            decoded: decodedObject,
-            metadata: decodedObject.metadata || {}
-        };
+        const response = await fetch(url, {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error executing VisualFoodExtraction: ${response.status} ${response.statusText}`);
+        }
+
+        console.log("✅ Tool executed successfully. Fetching results...");
+        await fetchThreadResults(threadId);
     } catch (error) {
-        console.error("Error decoding reference code:", error);
-        return { decoded: null, metadata: {} };
+        console.error("❌ Error executing tool:", error);
     }
 }
+
+
+
+
+async function fetchThreadResults(threadId, retries = 10, delay = 2000) {
+    const url = `https://api.passiolife.com/v2/products/nutrition-advisor/threads/${threadId}/messages`;
+    const headers = {
+        "Authorization": `Bearer ${authData.access_token.trim()}`,
+        "Content-Type": "application/json"
+    };
+
+    for (let attempt = 0; attempt < retries; attempt++) {
+        try {
+            let response = await fetch(url, { method: "POST", headers: headers });
+
+            if (!response.ok) {
+                throw new Error(`Error fetching thread: ${response.status} ${response.statusText}`);
+            }
+
+            let result = await response.json();
+            console.log(`🔄 Attempt ${attempt + 1}: Thread Response Data:`, result);
+
+            if (result.actionResponse && result.actionResponse.data) {
+                let extractedData = JSON.parse(result.actionResponse.data);
+                console.log("✅ Extracted Food Data:", extractedData);
+                displayExtractedFood(extractedData);
+                return;
+            }
+
+            console.warn("⚠️ No valid content yet, retrying...");
+            await new Promise(resolve => setTimeout(resolve, delay));
+        } catch (error) {
+            console.error("❌ Error fetching thread results:", error);
+            return;
+        }
+    }
+
+    console.error("❌ Max retries reached, no valid response.");
+}
+
+
+
+
+// Handle Nutrition Advisor API response
+// async function handleAdvisorResponse(response) {
+//     console.log("Full API Response:", response); // Debugging log
+//
+//     if (response && response.content) {
+//         console.log("Advisor Response:", response.content);
+//         displayResults(response.content);
+//     } else {
+//         console.warn("No valid content received. API Response:", response);
+//         displayServerMessage("No valid results from API.", "error");
+//     }
+// }
+
+
+// Display results on screen
+function displayExtractedFood(foodItems) {
+    let resultsDiv = document.querySelector(".results-div");
+    if (!resultsDiv) return;
+
+    let htmlContent = "<h3>Identified Food Items</h3><ul>";
+    foodItems.forEach(item => {
+        htmlContent += `<li><strong>${item.ingredientName}</strong> - ${item.weightGrams}g</li>`;
+    });
+    htmlContent += "</ul>";
+
+    resultsDiv.innerHTML = htmlContent;
+}
+
+
 
 // Display server messages with appropriate styling
 function displayServerMessage(message, type) {
     if (!serverMessage) return;
-
     serverMessage.textContent = message;
     serverMessage.classList.remove("error", "success", "info");
     serverMessage.classList.add(type);
