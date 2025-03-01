@@ -35,17 +35,6 @@ func NewRouter() *gin.Engine {
 	return router
 }
 
-func InitStatic(router *gin.Engine) {
-	// Serve frontend js files
-	router.Static("/public/js", "./public/js")
-	// Serve ico
-	router.Static("/public/ico", "./public/ico")
-	// Serve css
-	router.Static("/public/css", "./public/css")
-	// Serve images
-	router.Static("/public/images", "./public/images")
-}
-
 func InitRoutes(router *gin.Engine, app *handlers.App) {
 
 	// Set entry routes
@@ -59,6 +48,12 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 	{
 		// Apply user session middleware
 		api.Use(middleware.ValidateTokenMiddleware())
+		api.Use(func(c *gin.Context) {
+			c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+			c.Header("Pragma", "no-cache")
+			c.Header("Expires", "0")
+			c.Next()
+		})
 
 		api.GET("/", handlers.DashboardPage)
 		api.GET("/manual-food-search/", handlers.ManualFoodSearchPage)
@@ -74,4 +69,15 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 
 	// Invalid paths
 	router.NoRoute(handlers.InvalidPath)
+}
+
+func InitStatic(router *gin.Engine) {
+	// Serve frontend js files
+	router.Static("/public/js", "./public/js")
+	// Serve ico
+	router.Static("/public/ico", "./public/ico")
+	// Serve css
+	router.Static("/public/css", "./public/css")
+	// Serve images
+	router.Static("/public/images", "./public/images")
 }
