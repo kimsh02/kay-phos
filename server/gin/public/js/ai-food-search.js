@@ -8,9 +8,15 @@ let queuedImageArray = [],
 
 // Your authentication data - TODO: Store securely
 const authData = {
-access_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ind0V0V4NmVjc0dGMzZ1N3dfcVlCbyJ9.eyJpc3MiOiJodHRwczovL3Bhc3Npby51cy5hdXRoMC5jb20vIiwic3ViIjoiZVI0bUxVbmNKTVRqbENiWkxZd3ZERlU1cE9SOHE0bldAY2xpZW50cyIsImF1ZCI6InVuaWZpZWQiLCJpYXQiOjE3NDA2MDc4MzIsImV4cCI6MTc0MDY5NDIzMiwic2NvcGUiOiJyZWFkOmh1YiB3cml0ZTpodWIiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJhenAiOiJlUjRtTFVuY0pNVGpsQ2JaTFl3dkRGVTVwT1I4cTRuVyJ9.x5xLEyVYdBC2sFN3QbGmj8OKSYw8NkqXoybcrTQATEgoKZHrkeG1gmOBzl31xtmbqK-cxOfiNXV7P606-Ekt0ly-qd2TA6ExFTgDhulToscn42ANaaYVyNAnNWqnzWEff6GZMD48TEluqc1wkuWnPboPO3qWfW_vnmBSbsbVJxH0sOlDVOsqLRQ902CIeOsoxcz0IEJx48R2Z4n2CF4HS2qRwtYLhvJgkcdVKVsVZWr7_rni2hrPs60klEVGQbFP7cxB-JmQlZap9e2JjJ4Evs1kA7f6mpvDFUjY7Ueft-3a4z0s5V58UnE5NAIL1NN3KaM20V1emt6-yFDizKeWjQ..eyJjdXN0b21lcklkIjoiODRmNjI2MTItZWYwYS0xMWVmLTk5MTktMWU3OTFmMzBmMWQxIiwibGljZW5zZUtleSI6Iml4cnhlanM0anhXS3hWWWprWjFTYVBqUkhQRE5rNExXSGZqMHRqeW0iLCJsaWNlbnNlUHJvZHVjdCI6InVuaWZpZWQifQ==", // Bearer Token    customer_id: "YOUR_CUSTOMER_ID_HERE"
+access_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ind0V0V4NmVjc0dGMzZ1N3dfcVlCbyJ9.eyJpc3MiOiJodHRwczovL3Bhc3Npby51cy5hdXRoMC5jb20vIiwic3ViIjoiZVI0bUxVbmNKTVRqbENiWkxZd3ZERlU1cE9SOHE0bldAY2xpZW50cyIsImF1ZCI6InVuaWZpZWQiLCJpYXQiOjE3NDA4MDgxMzEsImV4cCI6MTc0MDg5NDUzMSwic2NvcGUiOiJyZWFkOmh1YiB3cml0ZTpodWIiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJhenAiOiJlUjRtTFVuY0pNVGpsQ2JaTFl3dkRGVTVwT1I4cTRuVyJ9.WvbJ-Ysyjhckx3mGCu7WJ9_c2Bso-NHjQHX5hs53927n-PBSPUoqtqA__djO5XYB_WoZ_Uab1QuznZEw81jN3yKzLkPosvjl85tBVQS0w_mYNmX0Q5mR0I1MWhu3pFLBtaM70Yu5QSbKKWwX2Pfkx9Th6tZQ9ZXOZRUjnOMHOqjxuh_exfjd4_OJznIJWiYKAqTS_ocDE6lLhqvYH7X3xhRHO4Fi6wYi6rOMSgHcFt_mxKkNIIHhm0CG53wMiw8WgEFnPhWxnZqGgnKdR_YnedZNZb-r3MTDGgz9_jiJPLEHe0dVlwyj3CzlsfIatBJudOu6AKLYaHlJgRQLn7OGYQ..eyJjdXN0b21lcklkIjoiODRmNjI2MTItZWYwYS0xMWVmLTk5MTktMWU3OTFmMzBmMWQxIiwibGljZW5zZUtleSI6Iml4cnhlanM0anhXS3hWWWprWjFTYVBqUkhQRE5rNExXSGZqMHRqeW0iLCJsaWNlbnNlUHJvZHVjdCI6InVuaWZpZWQifQ==", // Bearer Token
+customer_id: "84f62612-ef0a-11ef-9919-1e791f30f1d1"
 };
 
+// TODO Utility function to fetch a fresh access token
+async function getAccessToken() {
+    // Replace with actual token retrieval logic
+    return "YOUR_NEW_ACCESS_TOKEN";
+}
 // Store analysis results
 let analysisResults = [];
 
@@ -75,176 +81,89 @@ if (queuedForm) {
 }
 
 // Upload image and start conversation
+// Convert image to base64
+function convertImageToBase64(imageFile) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(imageFile);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+}
+
+// Upload image and start conversation
 async function startConversationWithImage(imageFile) {
     console.log("📤 Sending file to API:", imageFile.name);
 
-    const formData = new FormData();
-    formData.append("image", imageFile);
+    const base64Image = await convertImageToBase64(imageFile);
+    const accessToken = authData.access_token;
 
     const headers = {
-        "Authorization": `Bearer ${authData.access_token.trim()}`,
+        "Authorization": `Bearer ${accessToken}`,
+        "Passio-ID": authData.customer_id,
         "Content-Type": "application/json"
     };
 
     const url = "https://api.passiolife.com/v2/products/nutrition-advisor/threads";
 
     try {
-        const response = await fetch(url, { method: "POST", headers: headers, body: formData });
-
-        console.log("🔄 API Response Status:", response.status, response.statusText);
-
-        if (!response.ok) {
-            throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
-        }
+        const response = await fetch(url, { method: "POST", headers });
+        if (!response.ok) throw new Error(`Server responded with ${response.status}`);
 
         const result = await response.json();
         console.log("✅ Thread Created:", result);
 
         if (result.threadId) {
-            console.log("📝 Sending message to thread...");
-            const messageId = await sendMessageToThread(result.threadId);
-            if (messageId) {
-                console.log("⏳ Running VisualFoodExtraction tool...");
-                await runVisualFoodExtraction(result.threadId, messageId);
-            } else {
-                console.warn("⚠️ No messageId received, cannot run tool.");
-            }
-        } else {
-            console.warn("⚠️ No threadId returned, check API docs.");
+            const messageId = await sendMessageToThread(result.threadId, base64Image, accessToken);
+            console.log("⏳ Waiting for API to process image...");
+            await new Promise(resolve => setTimeout(resolve, 2000)); // 2-second delay
+
+            if (messageId) await runVisualFoodExtraction(result.threadId, messageId, accessToken);
         }
     } catch (error) {
         console.error("❌ Error in API request:", error);
     }
 }
 
-async function sendMessageToThread(threadId) {
-    const url = `https://api.passiolife.com/v2/products/nutrition-advisor/threads/${threadId}/messages`;
+// Send a message to the created thread with the image
+async function sendMessageToThread(threadId, base64Image, accessToken) {
+    const toolname = "VisualFoodExtraction";
+    const url = `https://api.passiolife.com/v2/products/nutrition-advisor/threads/${threadId}/messages/tools/vision/${toolname}`;
     const headers = {
-        "Authorization": `Bearer ${authData.access_token.trim()}`,
+        "Authorization": `Bearer ${accessToken}`,
+        "Passio-ID": authData.customer_id,
         "Content-Type": "application/json"
     };
 
     const requestBody = {
-        "message": "", // Empty message, just to create a valid message entry
-        "inputSensors": ["VisualFoodExtraction"] // Ensure tool is suggested
+        "message": null,
+        "image": base64Image
     };
 
     try {
-        const response = await fetch(url, {
-            method: "POST",
-            headers: headers,
-            body: JSON.stringify(requestBody)
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error sending message to thread: ${response.status} ${response.statusText}`);
-        }
+        const response = await fetch(url, { method: "POST", headers, body: JSON.stringify(requestBody) });
+        if (!response.ok) throw new Error(`Error sending message: ${response.status}`);
 
         const result = await response.json();
-        console.log("✅ Message Sent to Thread:", result);
+        console.log("✅ Image Processed Successfully:", result);
 
-        return result.messageId; // Needed to execute the tool
+        if (result.actionResponse?.data) {
+            let extractedData = JSON.parse(result.actionResponse.data);
+            console.log("✅ Extracted Food Data:", extractedData);
+            displayExtractedFood(extractedData);
+        } else {
+            console.warn("⚠️ No extracted food data found.");
+        }
+
+        return result.messageId;
     } catch (error) {
-        console.error("❌ Error sending message to thread:", error);
+        console.error("❌ Error processing image:", error);
         return null;
     }
 }
 
 
-
-
-async function runVisualFoodExtraction(threadId, messageId) {
-    if (!messageId) {
-        console.error("❌ No messageId available, cannot run VisualFoodExtraction.");
-        return;
-    }
-
-    const url = `https://api.passiolife.com/v2/products/nutrition-advisor/threads/${threadId}/messages`;
-    const headers = {
-        "Authorization": `Bearer ${authData.access_token.trim()}`,
-        "Content-Type": "application/json"
-    };
-
-    const requestBody = {
-        "messageId": messageId,
-        "toolName": "VisualFoodExtraction"
-    };
-
-    try {
-        const response = await fetch(url, {
-            method: "POST",
-            headers: headers,
-            body: JSON.stringify(requestBody)
-        });
-
-        if (!response.ok) {
-            throw new Error(`Error executing VisualFoodExtraction: ${response.status} ${response.statusText}`);
-        }
-
-        console.log("✅ Tool executed successfully. Fetching results...");
-        await fetchThreadResults(threadId);
-    } catch (error) {
-        console.error("❌ Error executing tool:", error);
-    }
-}
-
-
-
-
-async function fetchThreadResults(threadId, retries = 10, delay = 2000) {
-    const url = `https://api.passiolife.com/v2/products/nutrition-advisor/threads/${threadId}/messages`;
-    const headers = {
-        "Authorization": `Bearer ${authData.access_token.trim()}`,
-        "Content-Type": "application/json"
-    };
-
-    for (let attempt = 0; attempt < retries; attempt++) {
-        try {
-            let response = await fetch(url, { method: "POST", headers: headers });
-
-            if (!response.ok) {
-                throw new Error(`Error fetching thread: ${response.status} ${response.statusText}`);
-            }
-
-            let result = await response.json();
-            console.log(`🔄 Attempt ${attempt + 1}: Thread Response Data:`, result);
-
-            if (result.actionResponse && result.actionResponse.data) {
-                let extractedData = JSON.parse(result.actionResponse.data);
-                console.log("✅ Extracted Food Data:", extractedData);
-                displayExtractedFood(extractedData);
-                return;
-            }
-
-            console.warn("⚠️ No valid content yet, retrying...");
-            await new Promise(resolve => setTimeout(resolve, delay));
-        } catch (error) {
-            console.error("❌ Error fetching thread results:", error);
-            return;
-        }
-    }
-
-    console.error("❌ Max retries reached, no valid response.");
-}
-
-
-
-
-// Handle Nutrition Advisor API response
-// async function handleAdvisorResponse(response) {
-//     console.log("Full API Response:", response); // Debugging log
-//
-//     if (response && response.content) {
-//         console.log("Advisor Response:", response.content);
-//         displayResults(response.content);
-//     } else {
-//         console.warn("No valid content received. API Response:", response);
-//         displayServerMessage("No valid results from API.", "error");
-//     }
-// }
-
-
-// Display results on screen
+// Display extracted food items
 function displayExtractedFood(foodItems) {
     let resultsDiv = document.querySelector(".results-div");
     if (!resultsDiv) return;
@@ -257,8 +176,6 @@ function displayExtractedFood(foodItems) {
 
     resultsDiv.innerHTML = htmlContent;
 }
-
-
 
 // Display server messages with appropriate styling
 function displayServerMessage(message, type) {
