@@ -8,14 +8,48 @@ let queuedImageArray = [],
 
 // Your authentication data - TODO: Store securely
 const authData = {
-access_token: "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ind0V0V4NmVjc0dGMzZ1N3dfcVlCbyJ9.eyJpc3MiOiJodHRwczovL3Bhc3Npby51cy5hdXRoMC5jb20vIiwic3ViIjoiZVI0bUxVbmNKTVRqbENiWkxZd3ZERlU1cE9SOHE0bldAY2xpZW50cyIsImF1ZCI6InVuaWZpZWQiLCJpYXQiOjE3NDA4MDgxMzEsImV4cCI6MTc0MDg5NDUzMSwic2NvcGUiOiJyZWFkOmh1YiB3cml0ZTpodWIiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJhenAiOiJlUjRtTFVuY0pNVGpsQ2JaTFl3dkRGVTVwT1I4cTRuVyJ9.WvbJ-Ysyjhckx3mGCu7WJ9_c2Bso-NHjQHX5hs53927n-PBSPUoqtqA__djO5XYB_WoZ_Uab1QuznZEw81jN3yKzLkPosvjl85tBVQS0w_mYNmX0Q5mR0I1MWhu3pFLBtaM70Yu5QSbKKWwX2Pfkx9Th6tZQ9ZXOZRUjnOMHOqjxuh_exfjd4_OJznIJWiYKAqTS_ocDE6lLhqvYH7X3xhRHO4Fi6wYi6rOMSgHcFt_mxKkNIIHhm0CG53wMiw8WgEFnPhWxnZqGgnKdR_YnedZNZb-r3MTDGgz9_jiJPLEHe0dVlwyj3CzlsfIatBJudOu6AKLYaHlJgRQLn7OGYQ..eyJjdXN0b21lcklkIjoiODRmNjI2MTItZWYwYS0xMWVmLTk5MTktMWU3OTFmMzBmMWQxIiwibGljZW5zZUtleSI6Iml4cnhlanM0anhXS3hWWWprWjFTYVBqUkhQRE5rNExXSGZqMHRqeW0iLCJsaWNlbnNlUHJvZHVjdCI6InVuaWZpZWQifQ==", // Bearer Token
-customer_id: "84f62612-ef0a-11ef-9919-1e791f30f1d1"
+    access_token: "",
+    customer_id:  ""
 };
 
-// TODO Utility function to fetch a fresh access token
+
+// TODO Secure
 async function getAccessToken() {
-    // Replace with actual token retrieval logic
-    return "YOUR_NEW_ACCESS_TOKEN";
+    try {
+        // Your license key - replace with your actual key
+        const licenseKey = 'ixrxejs4jxWKxVYjkZ1SaPjRHPDNk4LWHfj0tjym';
+
+        // Construct the token request URL
+        const tokenUrl = `https://api.passiolife.com/v2/token-cache/unified/oauth/token/${licenseKey}`;
+
+        // Make the POST request to get the access token
+        const response = await fetch(tokenUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        // Check if the response is successful
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Parse the response
+        const tokenData = await response.json();
+
+        // Return an object with both access token and customer ID
+        return {
+            access_token: tokenData.access_token,
+            customer_id: tokenData.customer_id,
+            expires_in: tokenData.expires_in,
+            token_type: tokenData.token_type
+        };
+    } catch (error) {
+        console.error('Failed to retrieve access token:', error);
+        // You might want to handle this error more gracefully in your application
+        throw error;
+    }
 }
 // Store analysis results
 let analysisResults = [];
@@ -36,13 +70,23 @@ if (input) {
 function displayQueuedImages() {
     let images = "";
     queuedImageArray.forEach((image, index) => {
-        images += `<div class="image">
+        images += `<div class="image" data-index="${index}">
                     <img src="${URL.createObjectURL(image)}" alt="image">
-                    <span onclick="deleteQueuedImage(${index})">&times;</span>
+                    <span class="delete-image">&times;</span>
                     </div>`;
     });
     queuedDiv.innerHTML = images;
 }
+
+// Add event delegation for delete functionality
+queuedDiv.addEventListener('click', (event) => {
+    const deleteButton = event.target.closest('.delete-image');
+    if (deleteButton) {
+        const imageContainer = deleteButton.closest('.image');
+        const index = parseInt(imageContainer.dataset.index, 10);
+        deleteQueuedImage(index);
+    }
+});
 
 // Delete queued image
 function deleteQueuedImage(index) {
@@ -94,6 +138,15 @@ function convertImageToBase64(imageFile) {
 // Upload image and start conversation
 async function startConversationWithImage(imageFile) {
     console.log("📤 Sending file to API:", imageFile.name);
+    let token_data;
+    try {
+        token_data = await getAccessToken();
+        authData.access_token = token_data.access_token;
+        authData.customer_id = token_data.customer_id
+    } catch (error) {
+        // Handle token retrieval error
+        displayServerMessage('Failed to refresh access token', 'error');
+    }
 
     const base64Image = await convertImageToBase64(imageFile);
     const accessToken = authData.access_token;
