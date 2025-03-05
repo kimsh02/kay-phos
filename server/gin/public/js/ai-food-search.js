@@ -54,7 +54,6 @@ async function getAccessToken() {
 // Store analysis results
 let analysisResults = [];
 
-// Ensure input element exists before adding event listener
 if (input) {
     input.addEventListener("change", () => {
         const files = input.files;
@@ -72,18 +71,25 @@ function displayQueuedImages() {
     queuedImageArray.forEach((image, index) => {
         images += `<div class="image" data-index="${index}">
                     <img src="${URL.createObjectURL(image)}" alt="image">
-                    <span class="delete-image">&times;</span>
+                    <button class="delete-image" data-index="${index}">&times;</button>
                     </div>`;
     });
     queuedDiv.innerHTML = images;
+
+    // Add event listeners for delete buttons
+    document.querySelectorAll('.delete-image').forEach(button => {
+        button.addEventListener('click', (event) => {
+            const index = parseInt(event.target.dataset.index, 10);
+            deleteQueuedImage(index);
+        });
+    });
 }
 
 // Add event delegation for delete functionality
 queuedDiv.addEventListener('click', (event) => {
     const deleteButton = event.target.closest('.delete-image');
     if (deleteButton) {
-        const imageContainer = deleteButton.closest('.image');
-        const index = parseInt(imageContainer.dataset.index, 10);
+        const index = parseInt(deleteButton.dataset.index, 10);
         deleteQueuedImage(index);
     }
 });
