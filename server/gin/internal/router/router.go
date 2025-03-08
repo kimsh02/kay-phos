@@ -23,7 +23,7 @@ func NewRouter() *gin.Engine {
 			return
 		}
 		c.Header("X-Frame-Options", "DENY")
-		c.Header("Content-Security-Policy", "default-src 'self'; connect-src *; font-src *; script-src-elem * 'unsafe-inline'; img-src * data:; style-src * 'unsafe-inline';")
+		c.Header("Content-Security-Policy", "default-src 'self'; connect-src *; font-src *; script-src-elem * 'unsafe-inline'; img-src * data: blob:; style-src * 'unsafe-inline';")
 		c.Header("X-XSS-Protection", "1; mode=block")
 		c.Header("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
 		c.Header("Referrer-Policy", "strict-origin")
@@ -33,17 +33,6 @@ func NewRouter() *gin.Engine {
 	})
 
 	return router
-}
-
-func InitStatic(router *gin.Engine) {
-	// Serve frontend js files
-	router.Static("/public/js", "./public/js")
-	// Serve ico
-	router.Static("/public/ico", "./public/ico")
-	// Serve css
-	router.Static("/public/css", "./public/css")
-	// Serve images
-	router.Static("/public/images", "./public/images")
 }
 
 func InitRoutes(router *gin.Engine, app *handlers.App) {
@@ -59,6 +48,12 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 	{
 		// Apply user session middleware
 		api.Use(middleware.ValidateTokenMiddleware())
+		api.Use(func(c *gin.Context) {
+			c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+			c.Header("Pragma", "no-cache")
+			c.Header("Expires", "0")
+			c.Next()
+		})
 
 		api.GET("/", handlers.DashboardPage)
 		api.GET("/manual-food-search/", handlers.ManualFoodSearchPage)
@@ -74,4 +69,15 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 
 	// Invalid paths
 	router.NoRoute(handlers.InvalidPath)
+}
+
+func InitStatic(router *gin.Engine) {
+	// Serve frontend js files
+	router.Static("/public/js", "./public/js")
+	// Serve ico
+	router.Static("/public/ico", "./public/ico")
+	// Serve css
+	router.Static("/public/css", "./public/css")
+	// Serve images
+	router.Static("/public/images", "./public/images")
 }
