@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nutrient Advisor</title>
+  <link rel="stylesheet" href="manuel-food-search.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>What can I help with?</h1>
+    <div class="search-area">
+      <input type="text" id="queryInput" placeholder="Ask about a food or quick meal..."/>
+      <button onclick="handleSearch()">Search</button>
+    </div>
+
+    <div class="filters">
+      <label for="sort">Sort by:</label>
+      <select id="sortSelect" onchange="applyFilters()">
+        <option value="">None</option>
+        <option value="calories-asc">Calories (Low to High)</option>
+        <option value="calories-desc">Calories (High to Low)</option>
+        <option value="protein-desc">Protein (High to Low)</option>
+        <option value="phosphorus-desc">Phosphorus (High to Low)</option>
+        <option value="potassium-desc">Potassium (High to Low)</option>
+        <option value="carbs-desc">Carbs (High to Low)</option>
+      </select>
+    </div>
+
+    <div id="resultsContainer"></div>
+  </div>
+
+  <script src="manuel-food-search.js"></script>
+</body>
+</html>
