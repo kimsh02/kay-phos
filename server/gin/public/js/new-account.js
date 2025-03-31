@@ -49,7 +49,7 @@ document.getElementById('new-account-form').addEventListener('submit', async fun
             errorMessage.textContent = 'Server error. Please try again later.';
         } else {
             alert(result.message);
-            window.location.href = '/public/html/login.html';
+            window.location.href = '/';
         }
     } catch (error) {
         errorMessage.textContent = 'Network error. Please check your connection and try again.';
