@@ -61,7 +61,7 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 		api.GET("/user-define-meal", handlers.UserDefineMealPage)
 		api.GET("/user-meal-history", handlers.UserMealHistoryPage)
 		// fndds
-		// TODO: support json requests
+		// update: support json requests
 		// test
 		api.GET("/fndds/:query", app.SearchFnddsFoodItems)
 

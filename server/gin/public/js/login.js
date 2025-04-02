@@ -52,8 +52,7 @@ function login(event) {
         console.log("Text Status:", textStatus);
         console.log("Error Thrown:", errorThrown);
 
-        let errorMsg = "Invalid request";
-        
+
         if (jqXHR.status === 400 && jqXHR.responseJSON) {
             console.log("Error Response JSON:", jqXHR.responseJSON);
             //checking error
@@ -80,7 +79,7 @@ $(function () {
         $('#error-message').text("");  // Clear the error message
     });
     //submit button redirects to login function
-    $('#submit').click(function () {
+    $('#submit').click(function (event) {
     
         event.preventDefault(); 
         console.log("submit running!");

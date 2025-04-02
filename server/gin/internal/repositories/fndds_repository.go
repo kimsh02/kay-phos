@@ -23,16 +23,16 @@ func FnddsQuery(dbPool *pgxpool.Pool, query string) (*[]models.FnddsFoodItem, er
 	defer rows.Close()
 
 	// Build Fndds food item slice
-	food_items := make([]models.FnddsFoodItem, 0)
+	foodItems := make([]models.FnddsFoodItem, 0)
 	for rows.Next() {
 		var fi models.FnddsFoodItem
 		if err := rows.Scan(&fi.FoodCode, &fi.Description, &fi.Phosphorus, &fi.Potassium); err != nil {
 			return nil, err
 		}
-		food_items = append(food_items, fi)
+		foodItems = append(foodItems, fi)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-	return &food_items, nil
+	return &foodItems, nil
 }

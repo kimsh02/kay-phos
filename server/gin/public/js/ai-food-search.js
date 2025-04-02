@@ -57,8 +57,8 @@ let analysisResults = [];
 if (input) {
     input.addEventListener("change", () => {
         const files = input.files;
-        for (let i = 0; i < files.length; i++) {
-            queuedImageArray.push(files[i]);
+        for (const file of files) {
+            queuedImageArray.push(file);
         }
         queuedForm.reset();
         displayQueuedImages();
@@ -102,8 +102,8 @@ function deleteQueuedImage(index) {
 
 // Listen for form submission
 if (queuedForm) {
-    queuedForm.addEventListener("submit", async function(event) {
-        event.preventDefault();
+    queuedForm.addEventListener("submit", async function(event)  {
+        await event.preventDefault();
 
         if (queuedImageArray.length === 0) {
             displayServerMessage("Please select at least one image to upload", "error");
