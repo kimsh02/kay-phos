@@ -13,7 +13,7 @@ const authData = {
 };
 
 
-// TODO Secure
+
 async function getAccessToken() {
     try {
         // Your license key - replace with your actual key
