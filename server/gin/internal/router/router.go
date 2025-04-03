@@ -37,33 +37,27 @@ func NewRouter() *gin.Engine {
 
 func InitRoutes(router *gin.Engine, app *handlers.App) {
 
-	// Set entry routes
-	router.GET("/", handlers.LoginPage)
-	router.POST("/", handlers.MakeUserHandler(app.LoginUser))
-	router.GET("/new-account/", handlers.NewAccountPage)
-	router.POST("/new-account/", handlers.MakeUserHandler(app.CreateUser))
-
-	// Set protected routes
-	api := router.Group("/dashboard/")
+	api := router.Group("/api")
 	{
-		// Apply user session middleware
-		api.Use(middleware.ValidateTokenMiddleware())
-		api.Use(func(c *gin.Context) {
-			c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
-			c.Header("Pragma", "no-cache")
-			c.Header("Expires", "0")
-			c.Next()
-		})
-
-		api.GET("/", handlers.DashboardPage)
-		api.GET("/manual-food-search/", handlers.ManualFoodSearchPage)
-		api.GET("/ai-food-search/", handlers.AIFoodSearchPage)
-		api.GET("/user-define-meal", handlers.UserDefineMealPage)
-		api.GET("/user-meal-history", handlers.UserMealHistoryPage)
+		// Set entry routes
+		api.GET("/", handlers.LoginPage)
+		api.POST("/", handlers.MakeUserHandler(app.LoginUser))
+		api.GET("/new-account/", handlers.NewAccountPage)
+		api.POST("/new-account/", handlers.MakeUserHandler(app.CreateUser))
+	}
+	// Set protected routes
+	dashboard := router.Group("/dashboard", middleware.ValidateTokenMiddleware())
+	dashboard.Use(middleware.ValidateTokenMiddleware())
+	{
+		dashboard.GET("/", handlers.DashboardPage)
+		dashboard.GET("/manual-food-search/", handlers.ManualFoodSearchPage)
+		dashboard.GET("/ai-food-search/", handlers.AIFoodSearchPage)
+		dashboard.GET("/user-define-meal", handlers.UserDefineMealPage)
+		dashboard.GET("/user-meal-history", handlers.UserMealHistoryPage)
 		// fndds
 		// update: support json requests
 		// test
-		api.GET("/fndds/:query", app.SearchFnddsFoodItems)
+		dashboard.GET("/fndds/:query", app.SearchFnddsFoodItems)
 
 	}
 

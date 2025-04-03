@@ -1,47 +1,78 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/kimsh02/kay-phos/server/gin/internal/models"
-	"github.com/kimsh02/kay-phos/server/gin/internal/services"
 )
-
-/*
- * User JWT token middleware
- */
 
 func ValidateTokenMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Attempt to grab the token cookie
 		tokenString, err := c.Cookie("token")
-		// Abort if empty token
 		if err != nil {
-			c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-			// c.SetCookie("accountStatus", "not logged in", 5, "/", "localhost", false, false)
-			// log.Println("Redirect from empty token.")
-			// c.Redirect(http.StatusSeeOther, "/")
+			fmt.Println("Error in retrieving token.")
+			c.HTML(http.StatusUnauthorized, "unauthorized.html", gin.H{
+				"title":   "Access Denied",
+				"message": "Please login to continue.",
+			})
 			c.Abort()
 			return
 		}
-		// Verify token
-		claims := &models.Claims{}
-		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return services.JwtSecret, nil
+
+		//Parse and Validate the JWT
+		claims := &jwt.RegisteredClaims{}
+		parsedToken, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			secret := os.Getenv("JWT_SECRET")
+			return []byte(secret), nil
 		})
 
-		if err != nil || !token.Valid {
-			c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token."})
-			// c.SetCookie("accountStatus", "session expired", 5, "/", "localhost", false, false)
-			// log.Println("Redirect from empty invalid token.")
-			// c.Redirect(http.StatusSeeOther, "/")
+		if err != nil || !parsedToken.Valid {
+			fmt.Println("Error in validating token.")
+			c.HTML(http.StatusUnauthorized, "unauthorized.html", gin.H{
+				"title":   "Access Denied",
+				"message": "Your session is invalid or has expired. Please login again.",
+			})
 			c.Abort()
 			return
 		}
 
-		// Pass claims to the next handler
-		c.Set("userid", claims.UserID)
+		// Check expiration time
+		if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok && parsedToken.Valid {
+			if exp, ok := claims["exp"].(float64); ok {
+				expTime := time.Unix(int64(exp), 0)
+				if time.Now().After(expTime) {
+					fmt.Println("🚫 Token expired")
+					c.HTML(http.StatusUnauthorized, "unauthorized.html", gin.H{
+						"title":   "Session Expired",
+						"message": "Please log in again to continue.",
+					})
+					c.Abort()
+					return
+				}
+			}
+			// Optional: Set user info in context if needed
+			if sub, ok := claims["sub"].(string); ok {
+				c.Set("userID", sub)
+			}
+		} else {
+			fmt.Println("🚫 Failed to extract claims")
+			c.HTML(http.StatusUnauthorized, "unauthorized.html", gin.H{
+				"title":   "Access Denied",
+				"message": "Invalid session token.",
+			})
+			c.Abort()
+			return
+		}
+
+		// ✅ Passed all checks
 		c.Next()
 	}
 }
