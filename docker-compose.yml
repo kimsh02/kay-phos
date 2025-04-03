@@ -10,8 +10,8 @@ services:
       - ./server/gin/public:/kayphos/public
     depends_on:
       - db
-    environment:
-      DATABASE_URL: "postgresql://postgres:password@db:5432/kayphos"
+    env_file:
+      - .env
   db:
     image: postgres:17
     container_name: postgres
