@@ -2,37 +2,36 @@ package repositories
 
 import (
 	"context"
-	"log"
+	"fmt"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kimsh02/kay-phos/server/gin/internal/models"
 )
 
-/*
- * fndds_repository interacts with fndds nutrient values table in postgres
- */
+// FnddsQuery performs an ILIKE fuzzy match on description
+func FnddsQuery(db *pgxpool.Pool, ingredientName string) (*[]models.FnddsFoodItem, error) {
+	query := `
+		SELECT food_code, description, "Potassium (mg)", "Phosphorus (mg)"
+		FROM fndds_nutrient_values
+		WHERE description::text ILIKE '%' || $1 || '%'
+		LIMIT 1;
+	`
 
-func FnddsQuery(dbPool *pgxpool.Pool, query string) (*[]models.FnddsFoodItem, error) {
-	// Query db
-	rows, err := dbPool.Query(context.Background(), "fndds_search_query", query)
+	rows, err := db.Query(context.Background(), query, ingredientName)
 	if err != nil {
-		log.Println("Error in executing query.")
-		log.Println(err)
-		return nil, err
+		return nil, fmt.Errorf("query error: %w", err)
 	}
 	defer rows.Close()
 
-	// Build Fndds food item slice
-	foodItems := make([]models.FnddsFoodItem, 0)
+	var items []models.FnddsFoodItem
+
 	for rows.Next() {
-		var fi models.FnddsFoodItem
-		if err := rows.Scan(&fi.FoodCode, &fi.Description, &fi.Phosphorus, &fi.Potassium); err != nil {
-			return nil, err
+		var item models.FnddsFoodItem
+		if err := rows.Scan(&item.FoodCode, &item.Description, &item.Potassium, &item.Phosphorus); err != nil {
+			return nil, fmt.Errorf("scan error: %w", err)
 		}
-		foodItems = append(foodItems, fi)
+		items = append(items, item)
 	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return &foodItems, nil
+
+	return &items, nil
 }

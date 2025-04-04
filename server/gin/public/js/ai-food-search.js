@@ -66,7 +66,7 @@ function displayImage() {
         // Add event listener for delete button
         const deleteBtn = document.querySelector(".delete-image");
         if(deleteBtn)
-            deleteImage.addEventListener("click", deleteImage)
+            deleteBtn.addEventListener("click", deleteImage)
     }
 }
 
@@ -311,9 +311,10 @@ async function sendSelectedFoodsToDB() {
         displayServerMessage("Please select at least one food item.", "error");
         return;
     }
+    console.log("Selected foods:", selectedFoods);
 
     try {
-        const response = await fetch('http://localhost:8080/calculate-intake', {
+        const response = await fetch('/dashboard/calculate-intake', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ selectedFoods })

@@ -42,7 +42,6 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 	router.POST("/", handlers.MakeUserHandler(app.LoginUser))
 	router.GET("/new-account/", handlers.NewAccountPage)
 	router.POST("/new-account/", handlers.MakeUserHandler(app.CreateUser))
-	router.POST("/v1/ai-food-search", app.SearchFnddsFoodItems)
 
 	// Set protected routes
 	dashboard := router.Group("/dashboard/")
@@ -62,7 +61,7 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 		// fndds
 		// update: support json requests
 		// test
-		dashboard.GET("/fndds/:query", app.SearchFnddsFoodItems)
+		dashboard.POST("/calculate-intake", app.CalculateIntake)
 
 	}
 
