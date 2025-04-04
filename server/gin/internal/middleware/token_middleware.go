@@ -2,12 +2,10 @@ package middleware
 
 import (
 	"fmt"
-	"net/http"
-	"os"
-	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"net/http"
+	"os"
 )
 
 func ValidateTokenMiddleware() gin.HandlerFunc {
@@ -39,34 +37,6 @@ func ValidateTokenMiddleware() gin.HandlerFunc {
 			c.HTML(http.StatusUnauthorized, "unauthorized.html", gin.H{
 				"title":   "Access Denied",
 				"message": "Your session is invalid or has expired. Please login again.",
-			})
-			c.Abort()
-			return
-		}
-
-		// Check expiration time
-		if claims, ok := parsedToken.Claims.(jwt.MapClaims); ok && parsedToken.Valid {
-			if exp, ok := claims["exp"].(float64); ok {
-				expTime := time.Unix(int64(exp), 0)
-				if time.Now().After(expTime) {
-					fmt.Println("🚫 Token expired")
-					c.HTML(http.StatusUnauthorized, "unauthorized.html", gin.H{
-						"title":   "Session Expired",
-						"message": "Please log in again to continue.",
-					})
-					c.Abort()
-					return
-				}
-			}
-			// Optional: Set user info in context if needed
-			if sub, ok := claims["sub"].(string); ok {
-				c.Set("userID", sub)
-			}
-		} else {
-			fmt.Println("🚫 Failed to extract claims")
-			c.HTML(http.StatusUnauthorized, "unauthorized.html", gin.H{
-				"title":   "Access Denied",
-				"message": "Invalid session token.",
 			})
 			c.Abort()
 			return

@@ -23,14 +23,27 @@ func tsQuery(query string) string {
 }
 
 func (app *App) SearchFnddsFoodItems(c *gin.Context) {
-	query := c.Param("query")
-	// Query Fndds food items
-	food_items, err := repositories.FnddsQuery(app.DBPool, tsQuery(query))
-	if err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var body struct {
+		FoodName string `json:"food_name"`
+	}
+
+	if err := c.ShouldBindJSON(&body); err != nil || body.FoodName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing or invalid food_name"})
 		return
 	}
-	for _, v := range *food_items {
-		c.IndentedJSON(http.StatusOK, v)
+
+	query := tsQuery(body.FoodName)
+
+	foodItems, err := repositories.FnddsQuery(app.DBPool, query)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
+
+	if len(*foodItems) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No matching food found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, (*foodItems)[0]) // returns first match
 }

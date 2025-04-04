@@ -23,7 +23,7 @@ function login(event) {
 
 
     $.ajax({
-        url: 'http://localhost:8080/',  
+        url: '/',
         method: 'POST',
         contentType: 'application/json',  
         data: JSON.stringify(txdata),

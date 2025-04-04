@@ -1,19 +1,21 @@
-  #logo{
-    width: 15%;
-    float: left;
-    padding-left: 10px;
-    align-items: center;
-    margin-top: -25px;
-    padding-right:10px;
-  }
-  header{
-    background: #AB0520;
-    text-align: left;
-    padding-top: 10px;
-    color:white;
-    font-size: 30px;
-    min-height: 125px;
-  }
+#logo {
+  width: 15%;
+  float: left;
+  padding-left: 10px;
+  align-items: center;
+  margin-top: -25px;
+  padding-right: 10px;
+}
+
+header {
+  background: #AB0520;
+  text-align: left;
+  padding-top: 10px;
+  color: white;
+  font-size: 30px;
+  min-height: 125px;
+}
+
 .error {
   background-color: #ffcccc;
   color: #990000;
@@ -33,6 +35,7 @@
   border: 2px solid #4CAF50;
   background-color: rgba(76, 175, 80, 0.1);
 }
+
 * {
   padding: 0;
   margin: 0;
@@ -55,6 +58,79 @@ button {
   background-color: black;
   box-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.5);
   font-size: 0.9rem;
+}
+
+.analysis-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.table-header {
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.analysis-table th, .analysis-table td {
+  padding: 10px;
+  border: 1px solid #ccc;
+  text-align: left;
+}
+
+.analysis-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.food-row {
+  cursor: pointer;
+}
+
+.food-row:hover {
+  background-color: #e0e0e0;
+}
+
+.food-row.selected {
+  background-color: #a5d6a7; /* Light green highlight */
+}
+
+.calculate-intake {
+  flex: 1; /* Makes buttons take equal width */
+  padding: 15px 20px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  text-align: center;
+  transition: 0.3s ease-in-out;
+  margin: 0 10px; /* Adds space between buttons */
+}
+
+.calculate-intake:hover {
+  background-color: #092030;
+}
+
+.save-meal {
+  flex: 1; /* Makes buttons take equal width */
+  padding: 15px 20px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  text-align: center;
+  transition: 0.3s ease-in-out;
+  margin: 0 10px; /* Adds space between buttons */
+}
+
+.save-meal:hover {
+  background-color: #8B0015;
 }
 
 .app {
@@ -87,15 +163,17 @@ button {
 
 .input-div {
   width: 100%;
-  height: 200px;
+  min-height: 200px;
   border-radius: 5px;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
   border: 2px dotted black;
   background-color: white;
   position: relative;
+  padding: 10px;
 }
 
 .input-div .browse {
@@ -111,81 +189,74 @@ button {
   cursor: pointer;
 }
 
-.saved-div,
-.queued-div {
-  width: 100%;
-  min-height: 150px;
+.image-preview {
   display: flex;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  gap: 15px;
-  position: relative;
-  border-radius: 5px;
-  border: 2px dotted black;
-  background-color: white;
+  justify-content: center;
+  margin-top: 10px;
 }
 
-.saved-div .image,
-.queued-div .image {
-  height: 150px;
+.image-preview .image-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
   border-radius: 5px;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
   overflow: hidden;
-  position: relative;
 }
 
-.saved-div .image:nth-child(4n),
-.queued-div .image:nth-child(4n) {
-  margin-right: 0;
-}
-
-.saved-div .image img,
-.queued-div .image img {
-  height: 100%;
+.image-preview img {
   width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.saved-div .image span,
-.queued-div .image span {
+.image-preview .delete-image {
   position: absolute;
-  top: -4px;
-  right: 4px;
-  cursor: pointer;
-  font-size: 22px;
+  top: 5px;
+  right: 5px;
+  background: rgba(255, 0, 0, 0.8);
   color: white;
-}
-
-.saved-div .image span:hover,
-.queued-div .image span:hover {
-  opacity: 0.8;
-}
-
-.saved-div .span--hidden,
-.queued-div .span--hidden {
-  visibility: hidden;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 14px;
+  text-align: center;
+  cursor: pointer;
 }
 
 .results-container {
-    width: 100%;
-    margin-top: 20px;
-    padding: 10px;
-    border: 2px solid black;
-    border-radius: 5px;
-    background-color: white;
+  width: 100%;
+  margin-top: 20px;
+  padding: 15px;
+  border: 2px solid black;
+  border-radius: 5px;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.results-buttons {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 600px;
+  margin-top: 20px;
 }
 
 .results-container h3 {
-    margin-bottom: 10px;
-    font-size: 1.2rem;
-    text-align: center;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+  text-align: center;
 }
 
 .results-div {
-    padding: 10px;
-    min-height: 50px;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-    border: 1px solid #ccc;
-    font-size: 1rem;
-    text-align: center;
+  padding: 10px;
+  min-height: 50px;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  text-align: center;
 }

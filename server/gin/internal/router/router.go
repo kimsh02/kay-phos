@@ -1,11 +1,11 @@
 package router
 
 import (
+	"github.com/kimsh02/kay-phos/server/gin/internal/router/internal/middleware"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kimsh02/kay-phos/server/gin/internal/handlers"
-	"github.com/kimsh02/kay-phos/server/gin/internal/middleware"
 )
 
 func NewRouter() *gin.Engine {
@@ -37,18 +37,23 @@ func NewRouter() *gin.Engine {
 
 func InitRoutes(router *gin.Engine, app *handlers.App) {
 
-	api := router.Group("/api")
-	{
-		// Set entry routes
-		api.GET("/", handlers.LoginPage)
-		api.POST("/", handlers.MakeUserHandler(app.LoginUser))
-		api.GET("/new-account/", handlers.NewAccountPage)
-		api.POST("/new-account/", handlers.MakeUserHandler(app.CreateUser))
-	}
+	// Set public entry routes
+	router.GET("/", handlers.LoginPage)
+	router.POST("/", handlers.MakeUserHandler(app.LoginUser))
+	router.GET("/new-account/", handlers.NewAccountPage)
+	router.POST("/new-account/", handlers.MakeUserHandler(app.CreateUser))
+	router.POST("/v1/ai-food-search", app.SearchFnddsFoodItems)
+
 	// Set protected routes
-	dashboard := router.Group("/dashboard", middleware.ValidateTokenMiddleware())
-	dashboard.Use(middleware.ValidateTokenMiddleware())
+	dashboard := router.Group("/dashboard/")
 	{
+		dashboard.Use(middleware.ValidateTokenMiddleware())
+		dashboard.Use(func(c *gin.Context) {
+			c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
+			c.Header("Pragma", "no-cache")
+			c.Header("Expires", "0")
+			c.Next()
+		})
 		dashboard.GET("/", handlers.DashboardPage)
 		dashboard.GET("/manual-food-search/", handlers.ManualFoodSearchPage)
 		dashboard.GET("/ai-food-search/", handlers.AIFoodSearchPage)

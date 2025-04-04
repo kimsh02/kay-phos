@@ -17,6 +17,7 @@ import (
 
 func main() {
 	// Initialize db connection pool
+
 	dbPool, err := repositories.NewDBConnectionPool()
 	if err != nil {
 		log.Println(err)

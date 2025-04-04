@@ -1,19 +1,169 @@
 // Global variables
-let queuedImageArray = [],
+let uploadedImage = null; // Store only one image
+let analysisResults = []; // Store food analysis results
+let selectedFoods = []; // Store selected foods
+const inputDiv = document.querySelector(".input-div"),
+    input = document.querySelector(".file"),
+    serverMessage = document.querySelector(".server-message"),
+    resultsDiv = document.querySelector(".results-div"),
+    imagePreviewDiv = document.querySelector(".image-preview"),
     queuedForm = document.querySelector("#queued-form"),
-    queuedDiv = document.querySelector(".queued-div"),
-    inputDiv = document.querySelector(".input-div"),
-    input = document.querySelector(".input-div input"),
-    serverMessage = document.querySelector(".server-message");
+    calculateButton = document.createElement("button"),
+    saveMealButton = document.createElement("button"),
+    resultsButtonWrapper = document.createElement("div");
 
-// Your authentication data - TODO: Store securely
+// Setup "Calculate Intake" button
+calculateButton.textContent = "Calculate Potassium/Phosphorus Intake";
+calculateButton.classList.add("calculate-intake");
+calculateButton.style.display = "none"; // Hide until needed
+calculateButton.addEventListener("click", sendSelectedFoodsToDB);
+
+
+// Create "Save Meal to History" button
+saveMealButton.textContent = "Save Meal to History";
+saveMealButton.classList.add("save-meal");
+saveMealButton.style.display = "none"; // Hide until needed
+saveMealButton.addEventListener("click", saveMealToHistory); // Attach event listener
+
+resultsButtonWrapper.classList.add("results-buttons");
+
+// Append both buttons inside the wrapper
+resultsButtonWrapper.appendChild(saveMealButton);
+resultsButtonWrapper.appendChild(calculateButton);
+
+// Append the wrapper inside the results container
+document.querySelector(".results-container").appendChild(resultsButtonWrapper);
+
+
+
+// Handle file input and display single image
+if (input) {
+    input.addEventListener("change", () => {
+        if (input.files.length > 0) {
+            uploadedImage = input.files[0]; // Store the first image
+        }
+        input.value = ""; // Reset input field
+        displayImage();
+    });
+}
+
+// Display only one uploaded image
+function displayImage() {
+    imagePreviewDiv.innerHTML = ""; // Clear previous images
+    if (uploadedImage) {
+        const imageURL = URL.createObjectURL(uploadedImage);
+        imagePreviewDiv.innerHTML = `
+            <div class="image-container">
+                <img src="${imageURL}" alt="uploaded image">
+                <button class="delete-image">&times;</button>
+            </div>`;
+
+        // Add event listener for delete button
+        document.querySelector(".delete-image").addEventListener("click", deleteImage);
+    }
+}
+
+// Remove the uploaded image
+function deleteImage() {
+    uploadedImage = null; // Clear stored image
+    imagePreviewDiv.innerHTML = ""; // Clear preview
+}
+
+// Handle form submission (image upload)
+if (queuedForm) {
+    queuedForm.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        if (!uploadedImage) {
+            displayServerMessage("Please select an image to upload", "error");
+            return;
+        }
+
+        displayServerMessage("Analyzing image, please wait...", "info");
+
+        try {
+            let result = await startConversationWithImage(uploadedImage);
+            if (result) {
+                analysisResults = result; // Store analysis results
+                displayAnalysisResults(); // Display results in table
+                displayServerMessage(`Image processed successfully!`, "success");
+            }
+        } catch (error) {
+            console.error("API error:", error);
+            displayServerMessage(`Processing failed: ${error.message}`, "error");
+        }
+    });
+}
+
+// Display analysis results with clickable rows
+function displayAnalysisResults() {
+    resultsDiv.innerHTML = "";
+
+    // Ensure analysisResults is an array before proceeding
+    if (!Array.isArray(analysisResults) || analysisResults.length === 0) {
+        resultsDiv.innerHTML = "<p>No food items detected.</p>";
+        calculateButton.style.display = "none"; // Hide button if no items
+        return;
+    }
+
+    let headerHTML = `<h3 class="table-header">Identified Food Items</h3>`;
+
+
+    let table = `<table class="analysis-table">
+                    <thead>
+                        <tr>
+                            <th>Food Item</th>
+                            <th>Weight (g)</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+    analysisResults.forEach((item, index) => {
+        table += `<tr class="food-row" data-index="${index}">
+                    <td>${item.ingredientName}</td>
+                    <td>${item.weightGrams}g</td>
+                  </tr>`;
+    });
+
+    table += `</tbody></table>`;
+    resultsDiv.innerHTML = headerHTML + table;
+
+    // Ensure the "Calculate Intake" button appears
+    calculateButton.style.display = "flex";
+    saveMealButton.style.display = "flex";
+
+    // Re-attach click event listeners to food rows
+    document.querySelectorAll(".food-row").forEach(row => {
+        row.addEventListener("click", toggleSelection);
+    });
+}
+
+// Toggle selection on click (highlight row)
+function toggleSelection(event) {
+    let row = event.currentTarget;
+    let index = parseInt(row.dataset.index, 10);
+    let foodItem = analysisResults[index];
+
+    // Check if already selected
+    let selectedIndex = selectedFoods.findIndex(item => item.ingredientName === foodItem.ingredientName);
+
+    if (selectedIndex === -1) {
+        // Add to selected items
+        selectedFoods.push(foodItem);
+        row.classList.add("selected");
+    } else {
+        // Remove from selected items
+        selectedFoods.splice(selectedIndex, 1);
+        row.classList.remove("selected");
+    }
+}
+
+
 const authData = {
     access_token: "",
     customer_id:  ""
 };
 
-
-// TODO Secure
 async function getAccessToken() {
     try {
         // Your license key - replace with your actual key
@@ -51,86 +201,7 @@ async function getAccessToken() {
         throw error;
     }
 }
-// Store analysis results
-let analysisResults = [];
 
-if (input) {
-    input.addEventListener("change", () => {
-        const files = input.files;
-        for (const file of files) {
-            queuedImageArray.push(file);
-        }
-        queuedForm.reset();
-        displayQueuedImages();
-    });
-}
-
-// Display queued images
-function displayQueuedImages() {
-    let images = "";
-    queuedImageArray.forEach((image, index) => {
-        images += `<div class="image" data-index="${index}">
-                    <img src="${URL.createObjectURL(image)}" alt="image">
-                    <button class="delete-image" data-index="${index}">&times;</button>
-                    </div>`;
-    });
-    queuedDiv.innerHTML = images;
-
-    // Add event listeners for delete buttons
-    document.querySelectorAll('.delete-image').forEach(button => {
-        button.addEventListener('click', (event) => {
-            const index = parseInt(event.target.dataset.index, 10);
-            deleteQueuedImage(index);
-        });
-    });
-}
-
-// Add event delegation for delete functionality
-queuedDiv.addEventListener('click', (event) => {
-    const deleteButton = event.target.closest('.delete-image');
-    if (deleteButton) {
-        const index = parseInt(deleteButton.dataset.index, 10);
-        deleteQueuedImage(index);
-    }
-});
-
-// Delete queued image
-function deleteQueuedImage(index) {
-    queuedImageArray.splice(index, 1);
-    displayQueuedImages();
-}
-
-// Listen for form submission
-if (queuedForm) {
-    queuedForm.addEventListener("submit", async function(event)  {
-        await event.preventDefault();
-
-        if (queuedImageArray.length === 0) {
-            displayServerMessage("Please select at least one image to upload", "error");
-            return;
-        }
-
-        displayServerMessage("Analyzing images, please wait...", "info");
-        analysisResults = [];
-
-        try {
-            for (const image of queuedImageArray) {
-                const result = await startConversationWithImage(image);
-                analysisResults.push(result);
-            }
-
-            displayServerMessage(`Successfully processed ${analysisResults.length} images!`, "success");
-            queuedImageArray = [];
-            displayQueuedImages();
-
-        } catch (error) {
-            console.error("API error:", error);
-            displayServerMessage(`Processing failed: ${error.message}`, "error");
-        }
-    });
-}
-
-// Upload image and start conversation
 // Convert image to base64
 function convertImageToBase64(imageFile) {
     return new Promise((resolve, reject) => {
@@ -144,50 +215,80 @@ function convertImageToBase64(imageFile) {
 // Upload image and start conversation
 async function startConversationWithImage(imageFile) {
     console.log("📤 Sending file to API:", imageFile.name);
-    let token_data;
-    try {
-        token_data = await getAccessToken();
-        authData.access_token = token_data.access_token;
-        authData.customer_id = token_data.customer_id
-    } catch (error) {
-        // Handle token retrieval error
-        displayServerMessage('Failed to refresh access token', 'error');
-    }
-
-    const base64Image = await convertImageToBase64(imageFile);
-    const accessToken = authData.access_token;
-
-    const headers = {
-        "Authorization": `Bearer ${accessToken}`,
-        "Passio-ID": authData.customer_id,
-        "Content-Type": "application/json"
-    };
-
-    const url = "https://api.passiolife.com/v2/products/nutrition-advisor/threads";
+    displayServerMessage("Analyzing image, please wait...", "info");
 
     try {
-        const response = await fetch(url, { method: "POST", headers });
-        if (!response.ok) throw new Error(`Server responded with ${response.status}`);
+        // Simulating API processing delay (remove in actual API call)
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-        const result = await response.json();
-        console.log("✅ Thread Created:", result);
+        // Mock result for testing (replace with actual API response)
+        const result = [
+            { ingredientName: "Asparagus", weightGrams: 450 },
+            { ingredientName: "Lemon", weightGrams: 70 },
+            { ingredientName: "Minced garlic", weightGrams: 18 }
+        ];
 
-        if (result.threadId) {
-            const messageId = await sendMessageToThread(result.threadId, base64Image, accessToken);
-            console.log("⏳ Waiting for API to process image...");
-            await new Promise(resolve => setTimeout(resolve, 2000)); // 2-second delay
-
-            if (messageId) await runVisualFoodExtraction(result.threadId, messageId, accessToken);
+        // Ensure result is an array
+        if (!Array.isArray(result)) {
+            throw new Error("Invalid response format: Expected an array.");
         }
+
+        analysisResults = result;
+        displayAnalysisResults();
+
+        displayServerMessage("✅ Image processed successfully dummy", "success");
+        return result;
     } catch (error) {
-        console.error("❌ Error in API request:", error);
+        console.error("❌ Error processing image:", error);
+        displayServerMessage("Processing failed: " + error.message, "error");
+        return [];
     }
+    // console.log("📤 Sending file to API:", imageFile.name);
+    // displayServerMessage("Analyzing image, please wait...", "info")
+    // let token_data;
+    // try {
+    //     token_data = await getAccessToken();
+    //     authData.access_token = token_data.access_token;
+    //     authData.customer_id = token_data.customer_id
+    // } catch (error) {
+    //     // Handle token retrieval error
+    //     displayServerMessage('Failed to refresh access token', 'error');
+    // }
+    //
+    // const base64Image = await convertImageToBase64(imageFile);
+    // const accessToken = authData.access_token;
+    //
+    // const headers = {
+    //     "Authorization": `Bearer ${accessToken}`,
+    //     "Passio-ID": authData.customer_id,
+    //     "Content-Type": "application/json"
+    // };
+    //
+    // const url = "https://api.passiolife.com/v2/products/nutrition-advisor/threads";
+    //
+    // try {
+    //     const response = await fetch(url, { method: "POST", headers });
+    //     if (!response.ok) throw new Error(`Server responded with ${response.status}`);
+    //
+    //     const result = await response.json();
+    //     console.log("✅ Thread Created:", result);
+    //
+    //     if (result.threadId) {
+    //         const extractedData = await sendMessageToThread(result.threadId, base64Image, accessToken);
+    //         console.log("⏳ Waiting for API to process image...");
+    //         await new Promise(resolve => setTimeout(resolve, 2000)); // 2-second delay
+    //         return extractedData;
+    //
+    //     }
+    // } catch (error) {
+    //     console.error("❌ Error in API request:", error);
+    // }
 }
 
 // Send a message to the created thread with the image
 async function sendMessageToThread(threadId, base64Image, accessToken) {
-    const toolname = "VisualFoodExtraction";
-    const url = `https://api.passiolife.com/v2/products/nutrition-advisor/threads/${threadId}/messages/tools/vision/${toolname}`;
+    const toolName = "VisualFoodExtraction";
+    const url = `https://api.passiolife.com/v2/products/nutrition-advisor/threads/${threadId}/messages/tools/vision/${toolName}`;
     const headers = {
         "Authorization": `Bearer ${accessToken}`,
         "Passio-ID": authData.customer_id,
@@ -209,34 +310,46 @@ async function sendMessageToThread(threadId, base64Image, accessToken) {
         if (result.actionResponse?.data) {
             let extractedData = JSON.parse(result.actionResponse.data);
             console.log("✅ Extracted Food Data:", extractedData);
-            displayExtractedFood(extractedData);
+            return extractedData;
         } else {
             console.warn("⚠️ No extracted food data found.");
         }
 
-        return result.messageId;
+
     } catch (error) {
         console.error("❌ Error processing image:", error);
         return null;
     }
 }
 
-
-// Display extracted food items
-function displayExtractedFood(foodItems) {
-    let resultsDiv = document.querySelector(".results-div");
-    if (!resultsDiv) return;
-
-    let htmlContent = "<h3>Identified Food Items</h3><ul>";
-    foodItems.forEach(item => {
-        htmlContent += `<li><strong>${item.ingredientName}</strong> - ${item.weightGrams}g</li>`;
-    });
-    htmlContent += "</ul>";
-
-    resultsDiv.innerHTML = htmlContent;
+// TODO save meal functionality
+function saveMealToHistory() {
+    console.log("Meal saved to history! (Functionality to be implemented)");
 }
 
-// Display server messages with appropriate styling
+// TODO Send selected food items to the database
+async function sendSelectedFoodsToDB() {
+    if (selectedFoods.length === 0) {
+        displayServerMessage("Please select at least one food item.", "error");
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:8080/calculate-intake', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ selectedFoods })
+        });
+
+        const data = await response.json();
+        displayServerMessage(`Calculated intake: Potassium: ${data.potassium}mg, Phosphorus: ${data.phosphorus}mg`, "success");
+    } catch (error) {
+        console.error("❌ Error sending to database:", error);
+        displayServerMessage("Database request failed.", "error");
+    }
+}
+
+// Display messages
 function displayServerMessage(message, type) {
     if (!serverMessage) return;
     serverMessage.textContent = message;
