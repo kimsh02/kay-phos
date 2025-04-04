@@ -1,12 +1,12 @@
-DO $$
-DECLARE
-    r RECORD;
-BEGIN
-    -- Loop over all tables in the public schema
-    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
-        EXECUTE 'DROP TABLE IF EXISTS public.' || r.tablename || ' CASCADE';
-    END LOOP;
-END $$;
+-- DO $$
+-- DECLARE
+--     r RECORD;
+-- BEGIN
+--     -- Loop over all tables in the public schema
+--     FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+--         EXECUTE 'DROP TABLE IF EXISTS public.' || r.tablename || ' CASCADE';
+--     END LOOP;
+-- END $$;
 
 -- create table foundation_food_items
 -- as select

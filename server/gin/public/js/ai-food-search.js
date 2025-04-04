@@ -46,6 +46,11 @@ if (input) {
         displayImage();
     });
 }
+//Browse span click triggering the file picker
+const browseSpan = document.querySelector(".browse");
+if (browseSpan && input) {
+    browseSpan.addEventListener("click", () => input.click());
+}
 
 // Display only one uploaded image
 function displayImage() {
@@ -59,7 +64,9 @@ function displayImage() {
             </div>`;
 
         // Add event listener for delete button
-        document.querySelector(".delete-image").addEventListener("click", deleteImage);
+        const deleteBtn = document.querySelector(".delete-image");
+        if(deleteBtn)
+            deleteImage.addEventListener("click", deleteImage)
     }
 }
 
@@ -215,74 +222,45 @@ function convertImageToBase64(imageFile) {
 // Upload image and start conversation
 async function startConversationWithImage(imageFile) {
     console.log("📤 Sending file to API:", imageFile.name);
-    displayServerMessage("Analyzing image, please wait...", "info");
+    displayServerMessage("Analyzing image, please wait...", "info")
+    let token_data;
+    try {
+        token_data = await getAccessToken();
+        authData.access_token = token_data.access_token;
+        authData.customer_id = token_data.customer_id
+    } catch (error) {
+        // Handle token retrieval error
+        displayServerMessage('Failed to refresh access token', 'error');
+    }
+
+    const base64Image = await convertImageToBase64(imageFile);
+    const accessToken = authData.access_token;
+
+    const headers = {
+        "Authorization": `Bearer ${accessToken}`,
+        "Passio-ID": authData.customer_id,
+        "Content-Type": "application/json"
+    };
+
+    const url = "https://api.passiolife.com/v2/products/nutrition-advisor/threads";
 
     try {
-        // Simulating API processing delay (remove in actual API call)
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        const response = await fetch(url, { method: "POST", headers });
+        if (!response.ok) throw new Error(`Server responded with ${response.status}`);
 
-        // Mock result for testing (replace with actual API response)
-        const result = [
-            { ingredientName: "Asparagus", weightGrams: 450 },
-            { ingredientName: "Lemon", weightGrams: 70 },
-            { ingredientName: "Minced garlic", weightGrams: 18 }
-        ];
+        const result = await response.json();
+        console.log("✅ Thread Created:", result);
 
-        // Ensure result is an array
-        if (!Array.isArray(result)) {
-            throw new Error("Invalid response format: Expected an array.");
+        if (result.threadId) {
+            const extractedData = await sendMessageToThread(result.threadId, base64Image, accessToken);
+            console.log("⏳ Waiting for API to process image...");
+            await new Promise(resolve => setTimeout(resolve, 2000)); // 2-second delay
+            return extractedData;
+
         }
-
-        analysisResults = result;
-        displayAnalysisResults();
-
-        displayServerMessage("✅ Image processed successfully dummy", "success");
-        return result;
     } catch (error) {
-        console.error("❌ Error processing image:", error);
-        displayServerMessage("Processing failed: " + error.message, "error");
-        return [];
+        console.error("❌ Error in API request:", error);
     }
-    // console.log("📤 Sending file to API:", imageFile.name);
-    // displayServerMessage("Analyzing image, please wait...", "info")
-    // let token_data;
-    // try {
-    //     token_data = await getAccessToken();
-    //     authData.access_token = token_data.access_token;
-    //     authData.customer_id = token_data.customer_id
-    // } catch (error) {
-    //     // Handle token retrieval error
-    //     displayServerMessage('Failed to refresh access token', 'error');
-    // }
-    //
-    // const base64Image = await convertImageToBase64(imageFile);
-    // const accessToken = authData.access_token;
-    //
-    // const headers = {
-    //     "Authorization": `Bearer ${accessToken}`,
-    //     "Passio-ID": authData.customer_id,
-    //     "Content-Type": "application/json"
-    // };
-    //
-    // const url = "https://api.passiolife.com/v2/products/nutrition-advisor/threads";
-    //
-    // try {
-    //     const response = await fetch(url, { method: "POST", headers });
-    //     if (!response.ok) throw new Error(`Server responded with ${response.status}`);
-    //
-    //     const result = await response.json();
-    //     console.log("✅ Thread Created:", result);
-    //
-    //     if (result.threadId) {
-    //         const extractedData = await sendMessageToThread(result.threadId, base64Image, accessToken);
-    //         console.log("⏳ Waiting for API to process image...");
-    //         await new Promise(resolve => setTimeout(resolve, 2000)); // 2-second delay
-    //         return extractedData;
-    //
-    //     }
-    // } catch (error) {
-    //     console.error("❌ Error in API request:", error);
-    // }
 }
 
 // Send a message to the created thread with the image
