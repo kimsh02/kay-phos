@@ -65,6 +65,14 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 
 	}
 
+	router.GET("/logout", func(c *gin.Context) {
+		// Clear the session or token
+		c.SetCookie("session_token", "", -1, "/", "", false, true) // Clear session cookie
+
+		// Redirect to the login page
+		c.Redirect(http.StatusSeeOther, "/")
+	})
+
 	// Invalid paths
 	router.NoRoute(handlers.InvalidPath)
 }

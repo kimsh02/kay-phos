@@ -8,21 +8,33 @@
 </head>
 <body>
 
-  <!-- Shared Navbar -->
-  <nav class="navbar">
-    <div class="navbar__container">
-      <a href="/" id="navbar__logo">Kay-Phos</a>
-      <div class="navbar__toggle" id="mobile-menu">
-        <span class="bar"></span> <span class="bar"></span> <span class="bar"></span>
+    <!-- Navbar Section -->
+    <nav class="navbar">
+      <div class="navbar__container">
+        <a href="#" id="navbar__logo">
+          <img src="/public/images/UofA.png" alt="New Logo" style="height: 50px; width: 50px; margin-right: 15px;">
+          Manual Food Search
+        </a>
+        <div class="navbar__toggle" id="mobile-menu">
+          <span class="bar"></span> <span class="bar"></span>
+          <span class="bar"></span>
+        </div>
+        <ul class="navbar__menu">
+          <li class="navbar__btn">
+            <a href="http://localhost:8080/dashboard/user-meal-history" class="button">History</a>
+          </li>
+          <li class="navbar__btn">
+            <a href="http://localhost:8080/dashboard/ai-food-search" class="button">AI</a>
+          </li>
+          <li class="navbar__btn">
+            <a href="http://localhost:8080/dashboard/user-define-meal" class="button">Meal</a>
+          </li>
+          <li class="navbar__btn">
+            <a href="http://localhost:8080/logout" class="logout-button">Logout</a>
+          </li>
+        </ul>
       </div>
-      <ul class="navbar__menu">
-        <li class="navbar__btn"><a href="/" class="button">History</a></li>
-        <li class="navbar__btn"><a href="/" class="button">AI</a></li>
-        <li class="navbar__btn"><a href="/" class="button">Search</a></li>
-        <li class="navbar__btn"><a href="/" class="button">Meal</a></li>
-      </ul>
-    </div>
-  </nav>
+    </nav>
 
   <!-- Main Page Content -->
   <main class="app">
