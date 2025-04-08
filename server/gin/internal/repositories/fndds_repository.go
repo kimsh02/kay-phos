@@ -3,35 +3,67 @@ package repositories
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kimsh02/kay-phos/server/gin/internal/models"
 )
 
-// FnddsQuery performs an ILIKE fuzzy match on description
+// FnddsQuery performs an websearch_to_tsquery for looser match on description
 func FnddsQuery(db *pgxpool.Pool, ingredientName string) (*[]models.FnddsFoodItem, error) {
-	query := `
-		SELECT food_code, description, "Potassium (mg)", "Phosphorus (mg)"
+	queries := permuteWords(ingredientName)
+	for _, query := range queries {
+		rows, err := db.Query(context.Background(), `
+		SELECT "Food code", "Main food description", "Potassium (mg)", "Phosphorus (mg)"
 		FROM fndds_nutrient_values
-		WHERE description::text ILIKE '%' || $1 || '%'
-		LIMIT 1;
-	`
+		WHERE to_tsvector('english', description || ' ' || "Main food description" || ' ' || "WWEIA Category description")
+			  @@ plainto_tsquery('english', $1)
+		ORDER BY ts_rank(
+			to_tsvector('english', description || ' ' || "Main food description" || ' ' || "WWEIA Category description"),
+			plainto_tsquery('english', $1)
+		) DESC
+		LIMIT 5;
+		`, query)
 
-	rows, err := db.Query(context.Background(), query, ingredientName)
-	if err != nil {
-		return nil, fmt.Errorf("query error: %w", err)
-	}
-	defer rows.Close()
-
-	var items []models.FnddsFoodItem
-
-	for rows.Next() {
-		var item models.FnddsFoodItem
-		if err := rows.Scan(&item.FoodCode, &item.Description, &item.Potassium, &item.Phosphorus); err != nil {
-			return nil, fmt.Errorf("scan error: %w", err)
+		if err != nil {
+			return nil, fmt.Errorf("query error: %w", err)
 		}
-		items = append(items, item)
+
+		var items []models.FnddsFoodItem
+		for rows.Next() {
+			var item models.FnddsFoodItem
+			err := rows.Scan(&item.FoodCode, &item.Description, &item.Potassium, &item.Phosphorus)
+			if err != nil {
+				return nil, fmt.Errorf("scan error: %w", err)
+			}
+			items = append(items, item)
+		}
+		if len(items) == 0 {
+			fmt.Println("⚠️ No matches found in database for:", ingredientName)
+		}
+		if len(items) > 0 {
+			return &items, nil
+		}
+	}
+	return nil, nil
+}
+
+// helper function to rearrange food descriptions in case no match is found
+func permuteWords(input string) []string {
+	words := strings.Fields(input)
+	var results []string
+	n := len(words)
+
+	// Return original if there's 1 or 0 words
+	if n <= 1 {
+		return []string{input}
 	}
 
-	return &items, nil
+	// Simple permutations: rotate positions
+	for i := 0; i < n; i++ {
+		rotated := append(words[i:], words[:i]...)
+		results = append(results, strings.Join(rotated, " "))
+	}
+
+	return results
 }

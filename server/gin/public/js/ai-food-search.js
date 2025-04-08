@@ -300,18 +300,62 @@ async function sendMessageToThread(threadId, base64Image, accessToken) {
     }
 }
 
-// TODO save meal functionality
-function saveMealToHistory() {
-    console.log("Meal saved to history! (Functionality to be implemented)");
+// save meal functionality
+async function saveMealToHistory() {
+    if (selectedFoods.length === 0) {
+        displayServerMessage("Please select at least one food item to save.", "error");
+        return;
+    }
+
+    try {
+        const entries = [];
+
+        for (const item of selectedFoods) {
+            const res = await fetch(`/dashboard/foodcode?name=${encodeURIComponent(item.ingredientName)}`, {
+                credentials: "include"
+            });
+            const data = await res.json();
+
+            if (data.foodCode) {
+                entries.push({
+                    foodCode: data.foodCode,
+                    time: new Date().toISOString()
+                });
+            } else {
+                console.warn(`Food code not found for "${item.ingredientName}"`);
+            }
+        }
+
+        if (entries.length === 0) {
+            displayServerMessage("No valid food items found to save.", "error");
+            return;
+        }
+
+        const postRes = await fetch("/dashboard/api/user-meal-history", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ entries })
+        });
+
+        if (!postRes.ok) {
+            throw new Error("Failed to save meal");
+        }
+
+        displayServerMessage("Meal saved to history!", "success");
+    } catch (error) {
+        console.error("❌ Error saving meal:", error);
+        displayServerMessage("Something went wrong saving the meal.", "error");
+    }
 }
 
-// TODO Send selected food items to the database
+
+
 async function sendSelectedFoodsToDB() {
     if (selectedFoods.length === 0) {
         displayServerMessage("Please select at least one food item.", "error");
         return;
     }
-    console.log("Selected foods:", selectedFoods);
 
     try {
         const response = await fetch('/dashboard/calculate-intake', {
@@ -321,12 +365,33 @@ async function sendSelectedFoodsToDB() {
         });
 
         const data = await response.json();
-        displayServerMessage(`Calculated intake: Potassium: ${data.potassium}mg, Phosphorus: ${data.phosphorus}mg`, "success");
+
+        // Clear previous message and result div
+        resultsDiv.innerHTML = "";
+
+        // Show per-food breakdown
+        let html = "<h3>Per-Item Nutrient Breakdown</h3><ul>";
+        data.breakdown.forEach(item => {
+            html += `<li><strong>${item.ingredientName}</strong> (${item.weightGrams}g): 
+                     ${item.potassium}mg K, ${item.phosphorus}mg P</li>`;
+        });
+        html += "</ul>";
+
+        // Show total summary
+        html += `<h3>Total Dish Intake</h3><p>
+                 Potassium: <strong>${data.totals.potassium}mg</strong><br>
+                 Phosphorus: <strong>${data.totals.phosphorus}mg</strong>
+                 </p>`;
+
+        resultsDiv.innerHTML = html;
+        displayServerMessage("Calculated intake successfully!", "success");
+
     } catch (error) {
         console.error("❌ Error sending to database:", error);
         displayServerMessage("Database request failed.", "error");
     }
 }
+
 
 // Display messages
 function displayServerMessage(message, type) {

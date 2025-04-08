@@ -40,5 +40,9 @@ psql -d kayphos -U postgres -f sql_scripts/user_table.sql
 # create meal table
 psql -d kayphos -U postgres -f sql_scripts/meal_table.sql
 
+#Enable similarity
+psql -d kayphos -U postgres -f -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+
+
 # create user sessions table
 psql -d kayphos -U postgres -f sql_scripts/user_sessions.sql

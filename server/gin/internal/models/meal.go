@@ -13,4 +13,5 @@ type FnddsMeal struct {
 	Potassium   float64   `json:"potassium"`
 	Phosphorus  float64   `json:"phosphorus"`
 	Time        time.Time `json:"time"`
+	FoodCode    int       `json:"foodCode"`
 }

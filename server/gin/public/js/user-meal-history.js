@@ -1,167 +1,169 @@
 let chart, potassiumChart;
 
-      function parseCSV(csvText) {
-        const lines = csvText.trim().split("\n");
-        const header = lines[0].split(",").map(h => h.trim());
-        const records = [];
-        for (let i = 1; i < lines.length; i++) {
-          const line = lines[i].trim();
-          if (line !== "") {
-            const values = line.split(",").map(v => v.trim());
-            const record = {};
-            for (let j = 0; j < header.length; j++) {
-              record[header[j]] = values[j];
-            }
-            records.push(record);
-          }
-        }
-        return records;
+function parseCSV(csvText) {
+  const lines = csvText.trim().split("\n");
+  const header = lines[0].split(",").map(h => h.trim());
+  const records = [];
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (line !== "") {
+      const values = line.split(",").map(v => v.trim());
+      const record = {};
+      for (let j = 0; j < header.length; j++) {
+        record[header[j]] = values[j];
       }
+      records.push(record);
+    }
+  }
+  return records;
+}
 
-      async function loadCsvDataAndUpdateChart(beginDate, endDate) {
-        try {
-          const response = await fetch("/public/html/phosphorous_potassium_intake_with_time.csv");
-          if (!response.ok) {
-            throw new Error("Could not fetch CSV file. Status: " + response.status);
-          }
-          const csvText = await response.text();
+async function loadCsvDataAndUpdateChart(beginDate, endDate) {
+  try {
+    const response = await fetch("/public/html/phosphorous_potassium_intake_with_time.csv", {
+      credentials: "include" // Ensures cookies are sent with the request
+    });
+    if (!response.ok) {
+      throw new Error("Could not fetch CSV file. Status: " + response.status);
+    }
+    const csvText = await response.text();
 
-          const parsedData = parseCSV(csvText);
+    const parsedData = parseCSV(csvText);
 
-          const records = parsedData.map(item => ({
-            DateTime: new Date(item.DateTime),
-            Phosphorous: Number(item.Phosphorous),
-            Potassium: Number(item.Potassium)
-          }));
+    const records = parsedData.map(item => ({
+      DateTime: new Date(item.DateTime),
+      Phosphorous: Number(item.Phosphorous),
+      Potassium: Number(item.Potassium)
+    }));
 
-          let filteredRecords = records;
-          if (beginDate && endDate) {
-            const begin = new Date(beginDate);
-            const end = new Date(endDate);
-            filteredRecords = records.filter(record => {
-              const recordDate = record.DateTime;
-              return recordDate >= new Date(beginDate + "T00:00:00") &&
-                     recordDate <= new Date(endDate + "T23:59:59");
-            });
-          }
-
-          filteredRecords.sort((a, b) => a.DateTime - b.DateTime);
-
-          const phosphorousAggregatedRecords = {};
-          const potassiumAggregatedRecords = {};
-          filteredRecords.forEach(record => {
-            const d = record.DateTime;
-            const dateKey =
-              d.getFullYear() + "-" +
-              String(d.getMonth() + 1).padStart(2, "0") + "-" +
-              String(d.getDate()).padStart(2, "0");
-
-            if (!phosphorousAggregatedRecords[dateKey]) {
-              phosphorousAggregatedRecords[dateKey] = record.Phosphorous;
-            } else {
-              phosphorousAggregatedRecords[dateKey] += record.Phosphorous;
-            }
-
-            if (!potassiumAggregatedRecords[dateKey]) {
-              potassiumAggregatedRecords[dateKey] = record.Potassium;
-            } else {
-              potassiumAggregatedRecords[dateKey] += record.Potassium;
-            }
-          });
-
-          const aggregatedArray = Object.keys(phosphorousAggregatedRecords).map(key => ({
-            date: key,
-            phosphorousTotal: phosphorousAggregatedRecords[key],
-            potassiumTotal: potassiumAggregatedRecords[key]
-          }));
-          aggregatedArray.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-          const labels = aggregatedArray.map(item => item.date);
-          const phosphorousDataPoints = aggregatedArray.map(item => item.phosphorousTotal);
-          const potassiumDataPoints = aggregatedArray.map(item => item.potassiumTotal);
-
-          const ctx = document.getElementById("historyChart").getContext("2d");
-          if (chart) {
-            chart.destroy();
-          }
-          chart = new Chart(ctx, {
-            type: "line",
-            data: {
-              labels: labels,
-              datasets: [{
-                label: "Phosphorous Intake (mg)",
-                data: phosphorousDataPoints,
-                borderColor: "#1E5288",
-                backgroundColor: "rgba(30, 82, 136, 0.2)",
-                fill: true,
-                tension: 0.1
-              }]
-            },
-            options: {
-              responsive: false,
-              scales: {
-                x: {
-                  title: { display: true, text: "Date" }
-                },
-                y: {
-                  title: { display: true, text: "Phosphorous Intake (mg)" }
-                }
-              }
-            }
-          });
-
-          const potassiumCtx = document.getElementById("potassiumChart").getContext("2d");
-          if (potassiumChart) {
-            potassiumChart.destroy();
-          }
-          potassiumChart = new Chart(potassiumCtx, {
-            type: "line",
-            data: {
-              labels: labels,
-              datasets: [{
-                label: "Potassium Intake (mg)",
-                data: potassiumDataPoints,
-                //borderColor: "#E07B39",
-                borderColor: "#EF4056",
-                backgroundColor: "rgba(224, 123, 57, 0.2)",
-                fill: true,
-                tension: 0.1
-              }]
-            },
-            options: {
-              responsive: false,
-              scales: {
-                x: {
-                  title: { display: true, text: "Date" }
-                },
-                y: {
-                  title: { display: true, text: "Potassium Intake (mg)" }
-                }
-              }
-            }
-          });
-        } catch (error) {
-          console.error("Error loading or updating chart with CSV data:", error);
-        }
-      }
-
-      document.getElementById("dateRangeForm").addEventListener("submit", function(event) {
-        event.preventDefault();
-        const beginDate = document.getElementById("beginDate").value;
-        const endDate = document.getElementById("endDate").value;
-        loadCsvDataAndUpdateChart(beginDate, endDate);
+    let filteredRecords = records;
+    if (beginDate && endDate) {
+      const begin = new Date(beginDate);
+      const end = new Date(endDate);
+      filteredRecords = records.filter(record => {
+        const recordDate = record.DateTime;
+        return recordDate >= new Date(beginDate + "T00:00:00") &&
+            recordDate <= new Date(endDate + "T23:59:59");
       });
+    }
 
-      window.onload = function() {
-        const today = new Date();
-        const oneWeekAgo = new Date(today);
-        oneWeekAgo.setDate(today.getDate() - 7);
+    filteredRecords.sort((a, b) => a.DateTime - b.DateTime);
 
-        const formattedToday = today.toISOString().split("T")[0];
-        const formattedOneWeekAgo = oneWeekAgo.toISOString().split("T")[0];
+    const phosphorousAggregatedRecords = {};
+    const potassiumAggregatedRecords = {};
+    filteredRecords.forEach(record => {
+      const d = record.DateTime;
+      const dateKey =
+          d.getFullYear() + "-" +
+          String(d.getMonth() + 1).padStart(2, "0") + "-" +
+          String(d.getDate()).padStart(2, "0");
 
-        document.getElementById("beginDate").value = formattedOneWeekAgo;
-        document.getElementById("endDate").value = formattedToday;
+      if (!phosphorousAggregatedRecords[dateKey]) {
+        phosphorousAggregatedRecords[dateKey] = record.Phosphorous;
+      } else {
+        phosphorousAggregatedRecords[dateKey] += record.Phosphorous;
+      }
 
-        loadCsvDataAndUpdateChart(formattedOneWeekAgo, formattedToday);
-      };
+      if (!potassiumAggregatedRecords[dateKey]) {
+        potassiumAggregatedRecords[dateKey] = record.Potassium;
+      } else {
+        potassiumAggregatedRecords[dateKey] += record.Potassium;
+      }
+    });
+
+    const aggregatedArray = Object.keys(phosphorousAggregatedRecords).map(key => ({
+      date: key,
+      phosphorousTotal: phosphorousAggregatedRecords[key],
+      potassiumTotal: potassiumAggregatedRecords[key]
+    }));
+    aggregatedArray.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const labels = aggregatedArray.map(item => item.date);
+    const phosphorousDataPoints = aggregatedArray.map(item => item.phosphorousTotal);
+    const potassiumDataPoints = aggregatedArray.map(item => item.potassiumTotal);
+
+    const ctx = document.getElementById("historyChart").getContext("2d");
+    if (chart) {
+      chart.destroy();
+    }
+    chart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Phosphorous Intake (mg)",
+          data: phosphorousDataPoints,
+          borderColor: "#1E5288",
+          backgroundColor: "rgba(30, 82, 136, 0.2)",
+          fill: true,
+          tension: 0.1
+        }]
+      },
+      options: {
+        responsive: false,
+        scales: {
+          x: {
+            title: { display: true, text: "Date" }
+          },
+          y: {
+            title: { display: true, text: "Phosphorous Intake (mg)" }
+          }
+        }
+      }
+    });
+
+    const potassiumCtx = document.getElementById("potassiumChart").getContext("2d");
+    if (potassiumChart) {
+      potassiumChart.destroy();
+    }
+    potassiumChart = new Chart(potassiumCtx, {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Potassium Intake (mg)",
+          data: potassiumDataPoints,
+          //borderColor: "#E07B39",
+          borderColor: "#EF4056",
+          backgroundColor: "rgba(224, 123, 57, 0.2)",
+          fill: true,
+          tension: 0.1
+        }]
+      },
+      options: {
+        responsive: false,
+        scales: {
+          x: {
+            title: { display: true, text: "Date" }
+          },
+          y: {
+            title: { display: true, text: "Potassium Intake (mg)" }
+          }
+        }
+      }
+    });
+  } catch (error) {
+    console.error("Error loading or updating chart with CSV data:", error);
+  }
+}
+
+document.getElementById("dateRangeForm").addEventListener("submit", function(event) {
+  event.preventDefault();
+  const beginDate = document.getElementById("beginDate").value;
+  const endDate = document.getElementById("endDate").value;
+  loadCsvDataAndUpdateChart(beginDate, endDate);
+});
+
+window.onload = function() {
+  const today = new Date();
+  const oneWeekAgo = new Date(today);
+  oneWeekAgo.setDate(today.getDate() - 7);
+
+  const formattedToday = today.toISOString().split("T")[0];
+  const formattedOneWeekAgo = oneWeekAgo.toISOString().split("T")[0];
+
+  document.getElementById("beginDate").value = formattedOneWeekAgo;
+  document.getElementById("endDate").value = formattedToday;
+
+  loadCsvDataAndUpdateChart(formattedOneWeekAgo, formattedToday);
+};

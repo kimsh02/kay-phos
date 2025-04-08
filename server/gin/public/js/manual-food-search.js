@@ -1,12 +1,26 @@
 let allResults = []; // Store all fetched results so we can sort/filter without re-fetching
 
+document.addEventListener("DOMContentLoaded", function () {
+  renderRecentSearches();
+
+  document.getElementById("searchButton").addEventListener("click", handleSearch);
+  document.getElementById("sortSelect").addEventListener("change", applyFilters);
+});
+
+document.addEventListener("click", function (e) {
+  if (e.target.closest("#recentContainer li")) {
+    document.getElementById("queryInput").value = e.target.textContent;
+    handleSearch();
+  }
+});
+
 // Handle the user's search action
 async function handleSearch() {
   const query = document.getElementById('queryInput').value; // Get user input from the text box
   if (!query) return; // Prevent empty search
-
-  const response = await fetchNutrientData(query); // Call API (mocked here)
-  allResults = response; // Store the results globally
+  saveToRecent(query);
+   // Call API (mocked here)
+  allResults = await fetchNutrientData(query); // Store the results globally
   renderResults(allResults); // Display the results on the page
 }
 
@@ -43,12 +57,13 @@ function applyFilters() {
 // Render results as cards inside the results container
 function renderResults(results) {
   const container = document.getElementById('resultsContainer');
-  container.innerHTML = ''; // Clear previous results
+  container.innerHTML = '';
 
-  // Loop through each result and create a styled card
   results.forEach(item => {
     const card = document.createElement('div');
     card.className = 'result-card';
+
+    const foodData = JSON.stringify(item).replace(/'/g, "&#39;"); // escape quotes for safety
 
     card.innerHTML = `
       <h3>${item.name}</h3>
@@ -59,31 +74,75 @@ function renderResults(results) {
         <li><strong>Potassium:</strong> ${item.potassium}mg</li>
         <li><strong>Carbs:</strong> ${item.carbs}g</li>
       </ul>
+      <button class="add-to-meal" data-food='${foodData}'>Add to Meal History</button>
     `;
 
     container.appendChild(card); // Add card to the results container
   });
 }
+// Event delegation to handle all "Add to Meal" buttons
+document.addEventListener("click", async function (e) {
+  if (e.target.classList.contains("add-to-meal")) {
+    const foodItem = JSON.parse(e.target.dataset.food);
+    await addToMealHistory(foodItem);
+  }
+});
 
-// Mock API call function — replace this with real API integration
+// api call function to backend
 async function fetchNutrientData(query) {
-  // Example mocked results — this should be replaced by a call to your real API
-  return [
-    {
-      name: "Grilled Chicken Salad",
-      calories: 350,
-      protein: 30,
-      phosphorus: 220,
-      potassium: 400,
-      carbs: 10
-    },
-    {
-      name: "Avocado Toast",
-      calories: 290,
-      protein: 8,
-      phosphorus: 110,
-      potassium: 680,
-      carbs: 32
-    }
-  ];
+  const res = await fetch(`/dashboard/search-food?q=${encodeURIComponent(query)}`, { credentials: "include" });
+  const json = await res.json();
+  return json.results.map(item => ({
+    name: item.Description,
+    calories: 0, // optionally populate later
+    protein: 0,  // optionally populate later
+    phosphorus: item["Phosphorus (mg)"],
+    potassium: item["Potassium (mg)"],
+    carbs: 0
+  }));
 }
+
+//Recent Search Functionality
+function saveToRecent(query) {
+  let recent = JSON.parse(localStorage.getItem("recentSearches") || "[]");
+  recent = [query, ...recent.filter(q => q !== query)].slice(0, 5); // max 5 items
+  localStorage.setItem("recentSearches", JSON.stringify(recent));
+}
+
+function renderRecentSearches() {
+  const container = document.getElementById("recentContainer");
+  const recent = JSON.parse(localStorage.getItem("recentSearches") || "[]");
+
+  container.innerHTML = recent.map(q => `<li data-query="${q}">${q}</li>`).join("");
+}
+document.addEventListener("click", function (e) {
+  const li = e.target.closest("#recentContainer li");
+  if (li) {
+    document.getElementById("queryInput").value = li.dataset.query;
+    handleSearch();
+  }
+});
+
+
+//add to meal histroy function
+async function addToMealHistory(item) {
+  const response = await fetch("/dashboard/foodcode?name=" + encodeURIComponent(item.name), { credentials: "include" });
+  const data = await response.json();
+
+  if (!data.foodCode) {
+    alert("Could not find food code for: " + item.name);
+    return;
+  }
+
+  await fetch("/dashboard/api/user-meal-history", {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      entries: [{ foodCode: data.foodCode, time: new Date().toISOString() }]
+    })
+  });
+
+  alert("Added to meal history!");
+}
+

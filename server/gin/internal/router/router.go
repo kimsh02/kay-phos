@@ -58,10 +58,17 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 		dashboard.GET("/ai-food-search/", handlers.AIFoodSearchPage)
 		dashboard.GET("/user-define-meal", handlers.UserDefineMealPage)
 		dashboard.GET("/user-meal-history", handlers.UserMealHistoryPage)
+		dashboard.GET("/foodcode", app.GetFoodCode)
+		dashboard.GET("/api/user-meal-history", app.GetMealHistory)
+		dashboard.DELETE("/user-meal-history", app.DeleteMealEntry)
+		dashboard.GET("/search-food", app.SearchFood)
+		dashboard.GET("/autocomplete", app.AutocompleteSuggestions)
+
 		// fndds
 		// update: support json requests
 		// test
 		dashboard.POST("/calculate-intake", app.CalculateIntake)
+		dashboard.POST("/api/user-meal-history", app.InsertMealHistory)
 
 	}
 

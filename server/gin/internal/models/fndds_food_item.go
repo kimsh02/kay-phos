@@ -6,8 +6,8 @@ package models
  */
 
 type FnddsFoodItem struct {
-	FoodCode    int
-	Description string
+	FoodCode    int     `json:"Food Code"`
+	Description string  `json:"Description"`
 	Potassium   float64 `json:"Potassium (mg)"`
 	Phosphorus  float64 `json:"Phosphorus (mg)"`
 }

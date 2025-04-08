@@ -1,45 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/public/css/user-meal-history.css" />
-    <link
-      rel="stylesheet"
-      href="https://use.fontawesome.com/releases/v5.14.0/css/all.css"
-      integrity="sha384-HzLeBuhoNPvSl5KYnjx0BT+WB0QEEqLprO+NBkkk5gbc67FTaL7XIGa2w1L0Xbgc"
-      crossorigin="anonymous"
-    />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@400;700&display=swap"
-      rel="stylesheet"
-    />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  </head>
-  <body>
-    <nav class="navbar">
-      <div class="navbar__container">
-        <a href="/" id="navbar__logo">
-          <img src="/public/images/UofA.png" alt="New Logo" style="height: 50px; width: 50px; margin-right: 10px;">
-        </a>
-        <span class="navbar__title">User Meal History</span>
-      </div>
-    </nav>
-    
-    <div class="container">
-      <p>Select a date range to update the graphs.</p>
-      <form id="dateRangeForm">
-        <label for="beginDate">Begin Date:</label>
-        <input type="date" id="beginDate" name="beginDate" required />
-        <label for="endDate">End Date:</label>
-        <input type="date" id="endDate" name="endDate" required />
-        <button type="submit">Update Graphs</button>
-      </form>
-      <canvas id="historyChart" width="800" height="200"></canvas>
-      <canvas id="potassiumChart" width="800" height="200"></canvas>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/public/css/user-meal-history.css" />
+  <link
+          rel="stylesheet"
+          href="https://use.fontawesome.com/releases/v5.14.0/css/all.css"
+          integrity="sha384-HzLeBuhoNPvSl5KYnjx0BT+WB0QEEqLprO+NBkkk5gbc67FTaL7XIGa2w1L0Xbgc"
+          crossorigin="anonymous"
+  />
+  <link
+          href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@400;700&display=swap"
+          rel="stylesheet"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<!-- Navbar Section -->
+<nav class="navbar">
+  <div class="navbar__container">
+    <a href="#" id="navbar__logo">
+      <img src="/public/images/UofA.png" alt="New Logo" style="height: 50px; width: 50px; margin-right: 15px;">
+      User Meal History
+    </a>
+    <div class="navbar__toggle" id="mobile-menu">
+      <span class="bar"></span> <span class="bar"></span>
+      <span class="bar"></span>
     </div>
+    <ul class="navbar__menu">
+      <li class="navbar__btn">
+        <a href="http://localhost:8080/dashboard" class="button">Home</a>
+      </li>
+      <li class="navbar__btn">
+        <a href="http://localhost:8080/dashboard/ai-food-search" class="button">AI</a>
+      </li>
+      <li class="navbar__btn">
+        <a href="http://localhost:8080/dashboard/manual-food-search" class="button">Search</a>
+      </li>
+      <li class="navbar__btn">
+        <a href="http://localhost:8080/dashboard/user-define-meal" class="button">Meal</a>
+      </li>
+      <li class="navbar__btn">
+        <a href="http://localhost:8080/logout" class="logout-button">Logout</a>
+      </li>
+    </ul>
+  </div>
+</nav>
 
-        <script src="/public/js/user-meal-history.js"></script>
+<div class="container">
+  <p>Select a date range to update the graphs.</p>
+  <form id="dateRangeForm">
+    <label for="beginDate">Begin Date:</label>
+    <input type="date" id="beginDate" name="beginDate" required />
+    <label for="endDate">End Date:</label>
+    <input type="date" id="endDate" name="endDate" required />
+    <button type="submit">Update Graphs</button>
+  </form>
+  <canvas id="historyChart" width="800" height="200"></canvas>
+  <canvas id="potassiumChart" width="800" height="200"></canvas>
+</div>
 
-  </body>
+<script src = "/public/js/user-meal-history.js"></script>
+</body>
 </html>

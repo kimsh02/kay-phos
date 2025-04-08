@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/kimsh02/kay-phos/server/gin/internal/models"
 	"net/http"
 	"os"
 )
@@ -23,7 +24,7 @@ func ValidateTokenMiddleware() gin.HandlerFunc {
 		}
 
 		//Parse and Validate the JWT
-		claims := &jwt.RegisteredClaims{}
+		claims := &models.Claims{}
 		parsedToken, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -43,6 +44,7 @@ func ValidateTokenMiddleware() gin.HandlerFunc {
 		}
 
 		// ✅ Passed all checks
+		c.Set("claims", claims)
 		c.Next()
 	}
 }

@@ -97,63 +97,131 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-      async function loadExistingEntries() {
-        try {
-          const response = await fetch("/public/html/phosphorous_potassium_intake_with_time.csv");
-          if (!response.ok) {
-            console.error("Failed to fetch CSV. Status:", response.status);
-            return;
-          }
-          const csvText = await response.text();
-          const parsedData = parseCSV(csvText);
-          const selectedDate = document.getElementById("currentDate").value;
-          const todayRecords = parsedData.filter(item => {
-            const recordDate = parseCSVDate(item.DateTime);
-            const formattedRecordDate = formatDateInput(recordDate);
-            return formattedRecordDate === selectedDate;
-          });
-          const tbody = document.getElementById("existingEntriesBody");
-          tbody.innerHTML = "";
-          todayRecords.forEach(record => {
-            console.log("Adding Record to Table:", record);
-            const tr = document.createElement("tr");
-            tr.innerHTML = `<td>${record.DateTime}</td>
-                            <td>${record.Food || ""}</td>
-                            <td>${record.Phosphorous || ""}</td>
-                            <td>${record.Potassium || ""}</td>`;
-            tbody.appendChild(tr);
-          });
-          console.log("Parsed Data:", parsedData)
-        } catch (error) {
-          console.error("Error loading existing entries:", error);
-        }
-      }
+async function loadExistingEntries() {
+  try {
+    const response = await fetch("/dashboard/api/user-meal-history");
+    if (!response.ok) {
+      console.error("Failed to fetch meal history.");
+      return;
+    }
+    const meals = await response.json();
 
-      async function commitUpdate() {
-        const dateValue = document.getElementById("currentDate").value;
-        const foodEntries = document.getElementsByClassName("foodEntry");
-        const phosphorusEntries = document.getElementsByClassName("phosphorusEntry");
-        const potassiumEntries = document.getElementsByClassName("potassiumEntry"); // Add this line
-        let newEntries = [];
-        for (let i = 0; i < foodEntries.length; i++) {
-          const food = foodEntries[i].value;
-          const phosphorus = phosphorusEntries[i].value;
-          const potassium = potassiumEntries[i].value; // Collect Potassium value
-          if (phosphorus === "" && potassium === "") continue; // Skip if neither is provided
-          newEntries.push({
-            DateTime: formatDateTime(new Date()),
-            Food: food,
-            Phosphorous: Number(phosphorus),
-            Potassium: Number(potassium) // Add Potassium here
-          });
-        }
-        const dataPayload = {
-          date: dateValue,
-          entries: newEntries
-        };
-        console.log("Commit Update Data:", dataPayload);
-        setTimeout(() => {
-          alert("Meal history updated successfully! (Simulation)");
-          loadExistingEntries();
-        }, 1000);
+    const tbody = document.getElementById("existingEntriesBody");
+    tbody.innerHTML = "";
+
+    if (meals.length === 0) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td colspan="4">No meals recorded yet.</td>`;
+      tbody.appendChild(tr);
+    } else {
+      meals.forEach(record => {
+        const tr = document.createElement("tr");
+        const timeStr = new Date(record.time).toISOString(); // preserve exact timestamp
+
+        tr.innerHTML = `<td>${new Date(record.time).toLocaleString()}</td>
+                <td>${record.description}</td>
+                <td>${record.phosphorus}</td>
+                <td>${record.potassium}</td>
+                <td><button class="deleteBtn">Delete</button></td>`;
+
+        tbody.appendChild(tr);
+        const deleteBtn = tr.querySelector(".deleteBtn");
+        const timestamp = new Date(record.time).toISOString();
+        deleteBtn.addEventListener("click", () => deleteMeal(record.foodCode, timestamp));
+      });
+    }
+  } catch (error) {
+    console.error("Error loading existing entries:", error);
+  }
+}
+
+
+async function commitUpdate() {
+  const dateValue = document.getElementById("currentDate").value;
+  const foodEntries = document.getElementsByClassName("foodEntry");
+  const phosphorusEntries = document.getElementsByClassName("phosphorusEntry");
+  const potassiumEntries = document.getElementsByClassName("potassiumEntry");
+
+  let payloadEntries = [];
+
+  for (let i = 0; i < foodEntries.length; i++) {
+    const foodName = foodEntries[i].value.trim();
+    if (!foodName) continue;
+
+    // Fetch foodCode from server
+    try {
+      const res = await fetch(`/dashboard/foodcode?name=${encodeURIComponent(foodName)}`);
+      if (!res.ok) {
+        console.warn(`Food not found: ${foodName}`);
+        continue;
       }
+      const { foodCode } = await res.json();
+
+      // Prepare timestamp
+      const mealTime = new Date().toISOString(); // UTC ISO format
+
+      payloadEntries.push({
+        foodCode: foodCode,
+        time: mealTime
+      });
+    } catch (err) {
+      console.error(`Error fetching foodCode for ${foodName}:`, err);
+    }
+  }
+
+  if (payloadEntries.length === 0) {
+    alert("No valid food entries to submit.");
+    return;
+  }
+
+  const body = JSON.stringify({ entries: payloadEntries });
+
+  try {
+    const response = await fetch("/dashboard/api/user-meal-history", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body
+    });
+
+    if (response.ok) {
+      alert("Meal history updated successfully!");
+      loadExistingEntries();
+    } else {
+      const errorText = await response.text();
+      console.error("Failed to save meals:", errorText);
+      alert("Failed to update meal history.");
+    }
+  } catch (err) {
+    console.error("Unexpected error saving meals:", err);
+    alert("Unexpected error occurred.");
+  }
+}
+
+async function deleteMeal(foodCode, time) {
+  if (!confirm("Are you sure you want to delete this meal?")) return;
+
+  try {
+    const res = await fetch("/dashboard/user-meal-history", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ foodCode, time })
+    });
+
+    const result = await res.json();
+    console.log("Delete result:", result);
+
+    if (res.ok) {
+      alert("Meal deleted!");
+      loadExistingEntries(); //this reloads the table
+    } else {
+      alert("Failed to delete meal: " + result.error);
+    }
+  } catch (err) {
+    console.error("Error deleting meal:", err);
+    alert("Unexpected error during delete.");
+  }
+}
+
+
