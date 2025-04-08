@@ -63,7 +63,11 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 		dashboard.DELETE("/user-meal-history", app.DeleteMealEntry)
 		dashboard.GET("/search-food", app.SearchFood)
 		dashboard.GET("/autocomplete", app.AutocompleteSuggestions)
-
+		dashboard.GET("/logout", func(c *gin.Context) {
+			//Clear session token
+			c.SetCookie("token", "", -1, "/", "", false, true)
+			c.Redirect(http.StatusFound, "/")
+		})
 		// fndds
 		// update: support json requests
 		// test
