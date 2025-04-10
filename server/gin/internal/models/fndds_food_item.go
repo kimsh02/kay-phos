@@ -10,4 +10,7 @@ type FnddsFoodItem struct {
 	Description string  `json:"Description"`
 	Potassium   float64 `json:"Potassium (mg)"`
 	Phosphorus  float64 `json:"Phosphorus (mg)"`
+	Calories    float64 `json:"Calories"`
+	Protein     float64 `json:"Protein (g)"`
+	Carbs       float64 `json:"Carbohydrate (g)"`
 }

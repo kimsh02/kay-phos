@@ -80,7 +80,7 @@ func NewDBConnectionPool() (*pgxpool.Pool, error) {
 	// Create DB pool
 	dbPool, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
-		return nil, errors.New("DB connection failed.")
+		return nil, errors.New("DB connection failed")
 	}
 	return dbPool, nil
 }

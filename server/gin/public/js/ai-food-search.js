@@ -307,47 +307,55 @@ async function saveMealToHistory() {
         return;
     }
 
+    const mealName = prompt("Enter a name for this meal:");
+    if (!mealName) {
+        displayServerMessage("Meal name is required.", "error");
+        return;
+    }
+
+    const ingredients = selectedFoods.map(item => ({
+        name: item.ingredientName,
+        foodCode: 0,
+        grams: item.weightGrams || 0,
+        calories: item.calories || 0,
+        protein: item.protein || 0,
+        phosphorus: item.phosphorus || 0,
+        potassium: item.potassium || 0,
+        carbs: item.carbs || 0
+    }));
+
+
+    const payload = {
+        mealName,
+        time: new Date().toISOString(),
+        ingredients
+    };
+
     try {
-        const entries = [];
-
-        for (const item of selectedFoods) {
-            const res = await fetch(`/dashboard/foodcode?name=${encodeURIComponent(item.ingredientName)}`, {
-                credentials: "include"
-            });
-            const data = await res.json();
-
-            if (data.foodCode) {
-                entries.push({
-                    foodCode: data.foodCode,
-                    time: new Date().toISOString()
-                });
-            } else {
-                console.warn(`Food code not found for "${item.ingredientName}"`);
-            }
-        }
-
-        if (entries.length === 0) {
-            displayServerMessage("No valid food items found to save.", "error");
-            return;
-        }
-
         const postRes = await fetch("/dashboard/api/user-meal-history", {
             method: "POST",
-            credentials: "include",
+            credentials: "include", // Ensure cookies are sent
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ entries })
+            body: JSON.stringify(payload)
         });
 
         if (!postRes.ok) {
-            throw new Error("Failed to save meal");
+            const errText = await postRes.text();
+            throw new Error(errText);
         }
 
-        displayServerMessage("Meal saved to history!", "success");
+        displayToast("✅ Meal saved successfully!", "success");
+
+// 🧭 Redirect to meal history page after short delay
+        setTimeout(() => {
+            window.location.href = "/dashboard/user-define-meal";
+        }, 1500);
     } catch (error) {
         console.error("❌ Error saving meal:", error);
         displayServerMessage("Something went wrong saving the meal.", "error");
     }
 }
+
 
 
 
@@ -366,6 +374,19 @@ async function sendSelectedFoodsToDB() {
 
         const data = await response.json();
 
+        // Merge nutrients into selectedFoods
+        selectedFoods.forEach(sel => {
+            const enriched = data.breakdown.find(b => b.ingredientName === sel.ingredientName);
+            if (enriched) {
+                sel.calories = enriched.calories || 0;
+                sel.protein = enriched.protein || 0;
+                sel.carbs = enriched.carbs || 0;
+                sel.phosphorus = enriched.phosphorus || 0;
+                sel.potassium = enriched.potassium || 0;
+            }
+        });
+
+        saveMealButton.style.display = "flex";
         // Clear previous message and result div
         resultsDiv.innerHTML = "";
 
@@ -373,14 +394,18 @@ async function sendSelectedFoodsToDB() {
         let html = "<h3>Per-Item Nutrient Breakdown</h3><ul>";
         data.breakdown.forEach(item => {
             html += `<li><strong>${item.ingredientName}</strong> (${item.weightGrams}g): 
-                     ${item.potassium}mg K, ${item.phosphorus}mg P</li>`;
+                     ${item.potassium}mg K, ${item.phosphorus}mg P,
+                     ${item.calories} kcal, ${item.protein}g protein, ${item.carbs}g carbs</li>`;
         });
         html += "</ul>";
 
         // Show total summary
         html += `<h3>Total Dish Intake</h3><p>
                  Potassium: <strong>${data.totals.potassium}mg</strong><br>
-                 Phosphorus: <strong>${data.totals.phosphorus}mg</strong>
+                 Phosphorus: <strong>${data.totals.phosphorus}mg</strong><br>
+                 Calories: <strong>${data.totals.calories}g</strong><br>
+                 Protein: <strong>${data.totals.protein}g</strong><br>
+                 Carbs: <strong>${data.totals.carbs}g</strong><br>
                  </p>`;
 
         resultsDiv.innerHTML = html;
@@ -400,3 +425,17 @@ function displayServerMessage(message, type) {
     serverMessage.classList.remove("error", "success", "info");
     serverMessage.classList.add(type);
 }
+
+function displayToast(message, type = "info") {
+    const toast = document.createElement("div");
+    toast.textContent = message;
+    toast.className = `toast ${type}`;
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.classList.add("show"), 100);
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => toast.remove(), 300);
+    }, 2500);
+}
+

@@ -14,7 +14,7 @@ func FnddsQuery(db *pgxpool.Pool, ingredientName string) (*[]models.FnddsFoodIte
 	queries := permuteWords(ingredientName)
 	for _, query := range queries {
 		rows, err := db.Query(context.Background(), `
-		SELECT "Food code", "Main food description", "Potassium (mg)", "Phosphorus (mg)"
+		SELECT "Food code", "Main food description", "Potassium (mg)", "Phosphorus (mg)", "Energy (kcal)" AS "Calories (kcal)", "Protein (g)", "Carbohydrate (g)"
 		FROM fndds_nutrient_values
 		WHERE to_tsvector('english', description || ' ' || "Main food description" || ' ' || "WWEIA Category description")
 			  @@ plainto_tsquery('english', $1)
@@ -32,7 +32,7 @@ func FnddsQuery(db *pgxpool.Pool, ingredientName string) (*[]models.FnddsFoodIte
 		var items []models.FnddsFoodItem
 		for rows.Next() {
 			var item models.FnddsFoodItem
-			err := rows.Scan(&item.FoodCode, &item.Description, &item.Potassium, &item.Phosphorus)
+			err := rows.Scan(&item.FoodCode, &item.Description, &item.Potassium, &item.Phosphorus, &item.Calories, &item.Protein, &item.Carbs)
 			if err != nil {
 				return nil, fmt.Errorf("scan error: %w", err)
 			}

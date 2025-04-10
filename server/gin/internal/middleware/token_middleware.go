@@ -14,11 +14,14 @@ func ValidateTokenMiddleware() gin.HandlerFunc {
 		// Attempt to grab the token cookie
 		tokenString, err := c.Cookie("token")
 		if err != nil {
-			fmt.Println("Error in retrieving token.")
-			c.HTML(http.StatusUnauthorized, "unauthorized.html", gin.H{
-				"title":   "Access Denied",
-				"message": "Please login to continue.",
-			})
+			if gin.Mode() == gin.TestMode {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
+			} else {
+				c.HTML(http.StatusUnauthorized, "unauthorized.html", gin.H{
+					"title":   "Access Denied",
+					"message": "Please login to continue.",
+				})
+			}
 			c.Abort()
 			return
 		}
@@ -35,10 +38,14 @@ func ValidateTokenMiddleware() gin.HandlerFunc {
 
 		if err != nil || !parsedToken.Valid {
 			fmt.Println("Error in validating token.")
-			c.HTML(http.StatusUnauthorized, "unauthorized.html", gin.H{
-				"title":   "Access Denied",
-				"message": "Your session is invalid or has expired. Please login again.",
-			})
+			if gin.Mode() == gin.TestMode {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
+			} else {
+				c.HTML(http.StatusUnauthorized, "unauthorized.html", gin.H{
+					"title":   "Access Denied",
+					"message": "Your session is invalid or has expired. Please login again.",
+				})
+			}
 			c.Abort()
 			return
 		}

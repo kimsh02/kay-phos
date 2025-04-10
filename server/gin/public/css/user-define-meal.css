@@ -54,10 +54,6 @@ body {
   width: 60px;
 }
 
-.blue-text {
-  color: #0C234B;
-}
-
 .navbar__menu {
   display: flex;
   align-items: center;
@@ -65,33 +61,11 @@ body {
   text-align: center;
 }
 
-.navbar__links {
-  color: #fff;
-  background: #AB0520;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
-  padding: 0 1rem;
-  height: 100%;
-  border-radius: 4px;
-  transition: background 0.3s ease;
-}
-
-.navbar__links:hover {
-  background: darkred;
-}
-
-.navbar__item {
-  height: 80px;
-}
-
 .navbar__btn {
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 0 1rem;
-  width: 100%;
   color: #fff;
 }
 
@@ -99,133 +73,68 @@ body {
   color: white;
   text-decoration: none;
   padding: 10px 20px;
-  border: none;
-  background: none;
-  font-size: 16px;
   background-color: #AB0520;
-}
-
-.button {
-  display: block;
-  width: 100%;
-  height: 100%;
-  padding: 0;
+  font-size: 16px;
   border: none;
-  background: none;
+  border-radius: 4px;
 }
 
-.button-image {
+.navbar__btn .button:hover {
+  background-color: #0C234B;
+  transition: background 0.3s ease;
+}
+
+/* Main Content Wrappers */
+.meal-wrapper,
+.meal-history-wrapper {
+  max-width: 960px;
+  margin: 2rem auto;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.meal-history-wrapper h2,
+.meal-wrapper h2 {
+  margin-bottom: 1rem;
+}
+
+/* Tables */
+table {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.button:hover {
-  background: #0C234B;
-  transition: all 0.3s ease;
-}
-
-/* Responsive Design */
-@media screen and (max-width: 960px) {
-  .navbar__menu {
-    display: grid;
-    grid-template-columns: auto;
-    margin: 0;
-    width: 100%;
-    position: absolute;
-    top: -1000px;
-    opacity: 1;
-    transition: all 0.5s ease;
-    height: 50vh;
-    z-index: -1;
-  }
-
-  .navbar__menu.active {
-    background: #FFF;
-    top: 100%;
-    opacity: 1;
-    transition: all 0.5s ease;
-    z-index: 99;
-    height: 50vh;
-    font-size: 1.6rem;
-  }
-
-  .navbar__toggle .bar {
-    width: 25px;
-    height: 3px;
-    margin: 5px auto;
-    transition: all 0.3s ease-in-out;
-    background: #fff;
-  }
-
-  .navbar__item {
-    width: 100%;
-  }
-
-  .navbar__links {
-    text-align: center;
-    padding: 2rem;
-    width: 100%;
-    display: table;
-  }
-
-  #mobile-menu {
-    position: absolute;
-    top: 20%;
-    right: 5%;
-    transform: translate(5%, 20%);
-  }
-
-  #mobile-menu.is-active .bar:nth-child(2) {
-    opacity: 0;
-  }
-
-  #mobile-menu.is-active .bar:nth-child(1) {
-    transform: translateY(8px) rotate(45deg);
-  }
-
-  #mobile-menu.is-active .bar:nth-child(3) {
-    transform: translateY(-8px) rotate(-45deg);
-  }
-}
-
-.container {
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-h1, h2 {
-  color: #333;
-}
-
-form {
+  border-collapse: collapse;
   margin-bottom: 20px;
+  table-layout: fixed;
 }
 
-label {
-  margin-right: 10px;
-  font-weight: bold;
+th, td {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  text-align: left;
+  word-break: break-word;
 }
 
-input[type="date"],
-input[type="text"],
-input[type="number"] {
-  margin-right: 20px;
-  padding: 5px;
-  font-size: 1em;
+th {
+  background-color: #f5f5f5;
 }
 
-.entryRow {
-  margin-bottom: 10px;
+/* Inputs inside tables */
+#ingredientTable input[type="text"],
+#ingredientTable input[type="number"] {
+  width: 100%;
+  padding: 6px;
+  box-sizing: border-box;
 }
 
+/* Buttons */
 button {
-  padding: 10px 20px;
-  margin: 5px;
+  padding: 10px 15px;
+  margin-top: 1rem;
   background-color: #4CAF50;
   color: white;
   border: none;
+  border-radius: 4px;
   cursor: pointer;
 }
 
@@ -233,37 +142,28 @@ button:hover {
   background-color: #45a049;
 }
 
-/* Table styling for existing entries */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
+/* Autocomplete styling */
+.autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-top: none;
+  z-index: 1000;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-table, th, td {
-  border: 1px solid #ddd;
+.autocomplete-list li {
+  padding: 10px;
+  cursor: pointer;
 }
 
-th, td {
-  padding: 8px;
-  text-align: left;
-}
-
-th {
-  background-color: #f2f2f2;
-}
-
-.entryRow div {
-  display: block; /* Stacks label and input vertically */
-  margin-bottom: 15px; /* Adds spacing between rows */
-}
-
-.entryRow label {
-  display: block; /* Ensures the label is above the input */
-  margin-bottom: 5px; /* Adds space below the label */
-}
-
-.entryRow input {
-  display: inline-block; /* Keeps inputs properly sized and inline */
-  width: auto; /* Optional: Adjust width as needed */
+.autocomplete-list li:hover {
+  background-color: #f0f0f0;
 }

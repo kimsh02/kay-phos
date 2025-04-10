@@ -11,7 +11,7 @@ import (
 	"github.com/kimsh02/kay-phos/server/gin/internal/repositories"
 )
 
-// Handler for POST /dashboard/calculate-intake
+// CalculateIntake Handler for POST /dashboard/calculate-intake
 func (a *App) CalculateIntake(c *gin.Context) {
 	var req struct {
 		SelectedFoods []struct {
@@ -25,7 +25,7 @@ func (a *App) CalculateIntake(c *gin.Context) {
 		return
 	}
 
-	var totalK, totalP float64
+	var totalK, totalP, totalCar, totalC, totalPro float64
 	var breakdown []gin.H
 
 	for _, food := range req.SelectedFoods {
@@ -41,15 +41,24 @@ func (a *App) CalculateIntake(c *gin.Context) {
 		best := (*items)[0]
 		k := (best.Potassium / 100) * food.WeightGrams
 		p := (best.Phosphorus / 100) * food.WeightGrams
+		calories := (best.Calories / 100) * food.WeightGrams
+		protein := (best.Protein / 100) * food.WeightGrams
+		carbs := (best.Carbs / 100) * food.WeightGrams
 
 		totalK += k
 		totalP += p
+		totalC += calories
+		totalPro += protein
+		totalCar += carbs
 
 		breakdown = append(breakdown, gin.H{
 			"ingredientName": food.IngredientName,
 			"weightGrams":    food.WeightGrams,
 			"potassium":      math.Round(k),
 			"phosphorus":     math.Round(p),
+			"calories":       math.Round(calories),
+			"protein":        math.Round(protein),
+			"carbs":          math.Round(carbs),
 		})
 	}
 
@@ -58,11 +67,14 @@ func (a *App) CalculateIntake(c *gin.Context) {
 		"totals": gin.H{
 			"potassium":  math.Round(totalK),
 			"phosphorus": math.Round(totalP),
+			"calories":   math.Round(totalC),
+			"protein":    math.Round(totalPro),
+			"carbs":      math.Round(totalCar),
 		},
 	})
 }
 
-// Handler for GET /dashboard/search-food
+// SearchFood Handler for GET /dashboard/search-food
 func (a *App) SearchFood(c *gin.Context) {
 	query := c.Query("q")
 	if query == "" {
@@ -79,7 +91,7 @@ func (a *App) SearchFood(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"results": *results})
 }
 
-// Handler for GET /dashboard/autocomplete
+// AutocompleteSuggestions Handler for GET /dashboard/autocomplete
 func (a *App) AutocompleteSuggestions(c *gin.Context) {
 	prefix := c.Query("q")
 	if len(prefix) < 2 {
@@ -89,8 +101,8 @@ func (a *App) AutocompleteSuggestions(c *gin.Context) {
 
 	// Use a simpler LIKE query here (or ilike for case-insensitivity)
 	rows, err := a.DBPool.Query(context.Background(), `
-		SELECT DISTINCT description FROM fndds_nutrient_values
-		WHERE description ILIKE $1
+		SELECT DISTINCT "Main food description" FROM fndds_nutrient_values
+		WHERE "Main food description" ILIKE $1
 		LIMIT 10;
 	`, prefix+"%")
 	if err != nil {
@@ -102,7 +114,10 @@ func (a *App) AutocompleteSuggestions(c *gin.Context) {
 	var suggestions []string
 	for rows.Next() {
 		var desc string
-		rows.Scan(&desc)
+		err := rows.Scan(&desc)
+		if err != nil {
+			return
+		}
 		suggestions = append(suggestions, desc)
 	}
 

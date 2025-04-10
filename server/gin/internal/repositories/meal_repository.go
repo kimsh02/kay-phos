@@ -14,18 +14,18 @@ func InsertMeal(dbPool *pgxpool.Pool, userID uuid.UUID, foodCode int, mealTime t
 	_, err := dbPool.Exec(context.Background(),
 		`INSERT INTO meals (user_id, food_code, time) VALUES ($1, $2, $3);`,
 		userID, foodCode, mealTime)
+	log.Printf("📦 Inserting ingredient:")
 	return err
 }
 
 // GetMealsByUserID fetches all meals for a given user ID
-func GetMealsByUserID(dbPool *pgxpool.Pool, userID uuid.UUID) ([]models.FnddsMeal, error) {
+func GetMealsByUserID(dbPool *pgxpool.Pool, userID uuid.UUID) ([]models.MealEntry, error) {
 	query := `
-	SELECT m.food_code, f.description, f."Potassium (mg)", f."Phosphorus (mg)", m.time
-	FROM meals m
-	JOIN fndds_nutrient_values f ON m.food_code = f."Food code"
-	WHERE m.user_id = $1
-	ORDER BY m.time DESC;
-`
+	SELECT meal_name, description, time, grams, calories, protein, carbs, phosphorus, potassium
+	FROM meals
+	WHERE user_id = $1
+	ORDER BY time DESC;
+	`
 
 	rows, err := dbPool.Query(context.Background(), query, userID)
 	if err != nil {
@@ -33,22 +33,49 @@ func GetMealsByUserID(dbPool *pgxpool.Pool, userID uuid.UUID) ([]models.FnddsMea
 	}
 	defer rows.Close()
 
-	var meals []models.FnddsMeal
+	var meals []models.MealEntry
 	for rows.Next() {
-		var meal models.FnddsMeal
-		if err := rows.Scan(&meal.FoodCode, &meal.Description, &meal.Potassium, &meal.Phosphorus, &meal.Time); err != nil {
+		var m models.MealEntry
+		if err := rows.Scan(
+			&m.MealName,
+			&m.Name,
+			&m.Time,
+			&m.Grams,
+			&m.Calories,
+			&m.Protein,
+			&m.Carbs,
+			&m.Phosphorus,
+			&m.Potassium,
+		); err != nil {
 			return nil, err
 		}
-		meals = append(meals, meal)
+		meals = append(meals, m)
 	}
 	return meals, nil
 }
 
-func DeleteMeal(dbPool *pgxpool.Pool, userID uuid.UUID, foodCode int) error {
-	log.Printf("🔨 Deleting meal for user %s with food_code %d\n", userID, foodCode)
+func InsertCustomMeal(dbPool *pgxpool.Pool, userID uuid.UUID, mealName string, mealTime time.Time, ing models.Ingredient) error {
+	_, err := dbPool.Exec(context.Background(), `
+	INSERT INTO meals (
+		user_id, meal_name, time,
+		description, grams, calories, protein, carbs,
+		phosphorus, potassium
+	) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
+`,
+		userID, mealName, mealTime,
+		ing.Name, ing.Grams, ing.Calories, ing.Protein, ing.Carbs,
+		ing.Phosphorus, ing.Potassium)
+	log.Printf("🧠 InsertCustomMeal input: mealName=%s, time=%v, userID=%s, ingredient=%+v\n",
+		mealName, mealTime, userID.String(), ing)
+
+	return err
+}
+
+func DeleteMealByName(dbPool *pgxpool.Pool, userID uuid.UUID, mealName string) error {
 	cmdTag, err := dbPool.Exec(context.Background(),
-		`DELETE FROM meals WHERE user_id = $1 AND food_code = $2;`,
-		userID, foodCode)
-	log.Printf("Deleted %d rows", cmdTag.RowsAffected())
+		`DELETE FROM meals WHERE user_id = $1 AND meal_name = $2;`,
+		userID, mealName)
+
+	log.Printf("🧹 Deleted %d rows for meal name: %s", cmdTag.RowsAffected(), mealName)
 	return err
 }

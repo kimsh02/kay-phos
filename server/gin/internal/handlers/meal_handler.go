@@ -22,7 +22,6 @@ type mealInsertRequest struct {
 
 // POST /dashboard/user-meal-history
 func (app *App) InsertMealHistory(c *gin.Context) {
-	// Extract user ID from JWT
 	claims := c.MustGet("claims").(*models.Claims)
 	userID, err := uuid.Parse(claims.UserID)
 	if err != nil {
@@ -30,31 +29,49 @@ func (app *App) InsertMealHistory(c *gin.Context) {
 		return
 	}
 
-	var request mealInsertRequest
-	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON body"})
+	// Attempt to decode as grouped meal
+	var grouped models.MealGroup
+	if err := c.ShouldBindJSON(&grouped); err == nil && grouped.MealName != "" && len(grouped.Ingredients) > 0 {
+		for _, ing := range grouped.Ingredients {
+			if err := repositories.InsertCustomMeal(app.DBPool, userID, grouped.MealName, grouped.Time, ing); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert custom meal"})
+				return
+			}
+		}
+		c.JSON(http.StatusCreated, gin.H{"message": "Grouped meal saved successfully"})
 		return
 	}
 
-	for _, entry := range request.Entries {
-		if err := repositories.InsertMeal(app.DBPool, userID, entry.FoodCode, entry.Time); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert meal"})
-			return
+	// Fallback: handle legacy { entries: [{foodCode, time}] }
+	var legacy struct {
+		Entries []struct {
+			FoodCode int       `json:"foodCode"`
+			Time     time.Time `json:"time"`
+		} `json:"entries"`
+	}
+	if err := c.ShouldBindJSON(&legacy); err == nil && len(legacy.Entries) > 0 {
+		for _, entry := range legacy.Entries {
+			if err := repositories.InsertMeal(app.DBPool, userID, entry.FoodCode, entry.Time); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert legacy meal entry"})
+				return
+			}
 		}
+		c.JSON(http.StatusCreated, gin.H{"message": "Legacy meals saved successfully"})
+		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Meal history updated"})
+	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meal format"})
 }
 
 // GET /dashboard/foodcode?name=Banana
-func (app *App) GetFoodCode(c *gin.Context) {
+func (a *App) GetFoodCode(c *gin.Context) {
 	name := c.Query("name")
 	if name == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing food name"})
 		return
 	}
 
-	results, err := repositories.FnddsQuery(app.DBPool, name)
+	results, err := repositories.FnddsQuery(a.DBPool, name)
 	if err != nil || results == nil || len(*results) == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Food not found"})
 		return
@@ -67,7 +84,7 @@ func (app *App) GetFoodCode(c *gin.Context) {
 }
 
 // GET /dashboard/api/user-meal-history
-func (app *App) GetMealHistory(c *gin.Context) {
+func (a *App) GetMealHistory(c *gin.Context) {
 	log.Println("🔍 GetMealHistory called...")
 
 	claimsRaw, exists := c.Get("claims")
@@ -93,7 +110,7 @@ func (app *App) GetMealHistory(c *gin.Context) {
 		return
 	}
 
-	meals, err := repositories.GetMealsByUserID(app.DBPool, userID)
+	meals, err := repositories.GetMealsByUserID(a.DBPool, userID)
 	if err != nil {
 		log.Println("❌ Failed to fetch meals from DB:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch meals"})
@@ -114,15 +131,17 @@ func (app *App) DeleteMealEntry(c *gin.Context) {
 	}
 
 	var req struct {
-		FoodCode int `json:"foodCode"`
+		MealName string `json:"mealName"`
 	}
 
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+	if err := c.ShouldBindJSON(&req); err != nil || req.MealName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing meal name"})
 		return
 	}
-	log.Printf("🧹 Received delete request: user=%s foodCode=%d\n", userID, req.FoodCode)
-	err = repositories.DeleteMeal(app.DBPool, userID, req.FoodCode)
+
+	log.Printf("🧹 Deleting meal for user %s: mealName=%s\n", userID, req.MealName)
+
+	err = repositories.DeleteMealByName(app.DBPool, userID, req.MealName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete meal"})
 		return

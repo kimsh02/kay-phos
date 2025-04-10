@@ -7,6 +7,47 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("sortSelect").addEventListener("change", applyFilters);
 });
 
+document.getElementById("queryInput").addEventListener("input", async function () {
+  const query = this.value.trim();
+  const list = document.getElementById("autocompleteList");
+  if (query.length < 2) {
+    list.innerHTML = '';
+    return;
+  }
+
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#queryInput") && !e.target.closest("#autocompleteList")) {
+      document.getElementById("autocompleteList").innerHTML = '';
+    }
+  });
+
+
+  try {
+    const res = await fetch(`/dashboard/autocomplete?q=${encodeURIComponent(query)}`, {
+      credentials: "include"
+    });
+    const data = await res.json();
+    renderSuggestions(data.suggestions);
+  } catch (err) {
+    console.error("Autocomplete fetch error", err);
+  }
+});
+
+function renderSuggestions(suggestions) {
+  const list = document.getElementById("autocompleteList");
+  list.innerHTML = suggestions.map(item => `<li>${item}</li>`).join("");
+
+  // Clicking a suggestion sets input and triggers search
+  list.querySelectorAll("li").forEach(li => {
+    li.addEventListener("click", () => {
+      document.getElementById("queryInput").value = li.textContent;
+      list.innerHTML = '';
+      handleSearch();
+    });
+  });
+}
+
+
 document.addEventListener("click", function (e) {
   if (e.target.closest("#recentContainer li")) {
     document.getElementById("queryInput").value = e.target.textContent;
@@ -66,8 +107,9 @@ function renderResults(results) {
     const foodData = JSON.stringify(item).replace(/'/g, "&#39;"); // escape quotes for safety
 
     card.innerHTML = `
-      <h3>${item.name}</h3>
+      <h3>${item.name || item["Description"]}</h3>
       <ul>
+        <li><strong>Grams:</strong> ${item.grams}g</li>
         <li><strong>Calories:</strong> ${item.calories}</li>
         <li><strong>Protein:</strong> ${item.protein}g</li>
         <li><strong>Phosphorus:</strong> ${item.phosphorus}mg</li>
@@ -90,17 +132,30 @@ document.addEventListener("click", async function (e) {
 
 // api call function to backend
 async function fetchNutrientData(query) {
-  const res = await fetch(`/dashboard/search-food?q=${encodeURIComponent(query)}`, { credentials: "include" });
+  const gramsInput = document.getElementById("gramsInput");
+  const grams = parseFloat(gramsInput.value) || 100;
+
+  const res = await fetch(`/dashboard/search-food?q=${encodeURIComponent(query)}`, {
+    credentials: "include"
+  });
   const json = await res.json();
-  return json.results.map(item => ({
-    name: item.Description,
-    calories: 0, // optionally populate later
-    protein: 0,  // optionally populate later
-    phosphorus: item["Phosphorus (mg)"],
-    potassium: item["Potassium (mg)"],
-    carbs: 0
-  }));
+
+  return json.results.map(item => {
+    const multiplier = grams / 100;
+
+    return {
+      foodCode: item["Food Code"],
+      name: item["Description"],
+      grams: grams,
+      calories: (item["Calories"] * multiplier).toFixed(2),
+      protein: (item["Protein (g)"] * multiplier).toFixed(2),
+      phosphorus: (item["Phosphorus (mg)"] * multiplier).toFixed(2),
+      potassium: (item["Potassium (mg)"] * multiplier).toFixed(2),
+      carbs: (item["Carbohydrate (g)"] * multiplier).toFixed(2)
+    };
+  });
 }
+
 
 //Recent Search Functionality
 function saveToRecent(query) {
@@ -126,23 +181,51 @@ document.addEventListener("click", function (e) {
 
 //add to meal histroy function
 async function addToMealHistory(item) {
-  const response = await fetch("/dashboard/foodcode?name=" + encodeURIComponent(item.name), { credentials: "include" });
-  const data = await response.json();
+  const gramsInput = document.getElementById("gramsInput");
+  const grams = parseFloat(gramsInput.value) || 100;
 
-  if (!data.foodCode) {
+  if (!item.foodCode) {
     alert("Could not find food code for: " + item.name);
     return;
   }
 
-  await fetch("/dashboard/api/user-meal-history", {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      entries: [{ foodCode: data.foodCode, time: new Date().toISOString() }]
-    })
-  });
+  const payload = {
+    mealName: prompt("Enter a name for this meal:", item.name),
+    time: new Date().toISOString(),
+    ingredients: [{
+      name: item.name,
+      foodCode: item.foodCode,
+      grams: grams,
+      calories: item.calories,
+      protein: item.protein,
+      phosphorus: item.phosphorus,
+      potassium: item.potassium,
+      carbs: item.carbs
+    }]
+  };
 
-  alert("Added to meal history!");
+  try {
+    const res = await fetch("/dashboard/api/user-meal-history", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const msg = await res.text();
+      console.error("❌ Failed to save meal:", msg);
+      alert("Failed to save meal.");
+      return;
+    }
+
+    alert("✅ Meal saved to history!");
+    gramsInput.value = "";
+  } catch (err) {
+    console.error("❌ Unexpected error:", err);
+    alert("Something went wrong.");
+  }
 }
+
+
 
