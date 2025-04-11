@@ -1,5 +1,6 @@
 //debug console message
 console.log("login.js is running!");
+import { validateLogin } from "./helpers/login-helper";
 
 function login(event) {
      // Prevent form submission
@@ -8,6 +9,14 @@ function login(event) {
 
     let username = $('#username').val().trim();
     let password = $('#password').val().trim();
+
+    const result = validateLogin(username, password);
+
+    if(result.error){
+        $("#error-message").text(result.error)
+    }else{
+        $('#rxData').text(result.message);
+    }
 
     // Check if fields are empty
     if (!username || !password) {
@@ -51,6 +60,7 @@ function login(event) {
         console.log("AJAX Error:", jqXHR);
         console.log("Text Status:", textStatus);
         console.log("Error Thrown:", errorThrown);
+        let errorMsg;
 
 
         if (jqXHR.status === 400 && jqXHR.responseJSON) {
