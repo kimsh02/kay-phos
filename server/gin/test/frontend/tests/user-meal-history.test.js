@@ -10,7 +10,7 @@
  * - Input population for date range selection
  *
  * ❌ Features Not Tested:
- * - Backend fetch /dashboard/api/user-logged-meals
+ * - backend fetch /dashboard/api/user-logged-meals
  * - Chart.js rendering or nutrient graph updates
  * - Data validation from backend
  */

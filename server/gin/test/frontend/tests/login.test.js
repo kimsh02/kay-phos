@@ -11,7 +11,7 @@
  * - Button click simulation triggering logic
  *
  * ❌ Features Not Tested:
- * - Backend API request to POST /
+ * - backend API request to POST /
  * - Credential verification via server
  * - Redirect behavior or token/cookie handling
  */

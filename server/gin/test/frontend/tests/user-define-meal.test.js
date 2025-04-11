@@ -12,7 +12,7 @@
  * - Button click simulation for Save and Save & Log logic
  *
  * ❌ Features Not Tested:
- * - Backend POST /dashboard/api/user-meal-history
+ * - backend POST /dashboard/api/user-meal-history
  * - Server error handling or toast feedback from backend
  */
 

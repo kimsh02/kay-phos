@@ -13,7 +13,7 @@
  * - Payload creation for "Log This Meal" (without POST)
  *
  * ❌ Features Not Tested:
- * - Backend API calls (e.g. search-food, autocomplete endpoint)
+ * - backend API calls (e.g. search-food, autocomplete endpoint)
  * - Actual fetch() logic or AJAX behavior
  * - Adding meals to history via POST
  */
