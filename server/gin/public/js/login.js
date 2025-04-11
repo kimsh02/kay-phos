@@ -17,7 +17,7 @@ function login(event) {
 
     let txdata = {
 
-        username: username, 
+        username: username,
         inputpassword: password
     };
 
@@ -25,20 +25,20 @@ function login(event) {
     $.ajax({
         url: '/',
         method: 'POST',
-        contentType: 'application/json',  
+        contentType: 'application/json',
         data: JSON.stringify(txdata),
         dataType: 'json',
         //enable cookies in ajax request
         xhrFields: {
-            withCredentials: true 
+            withCredentials: true
         }
     })
     .done(function (data) {
         //should redirect if correct username and password or send error message if not
         console.log("Success response:", data);
-        if (data.message) {  
-            localStorage.setItem("message", data.message); 
-            //add 500ms delay to change of page after pressing submit 
+        if (data.message) {
+            localStorage.setItem("message", data.message);
+            //add 500ms delay to change of page after pressing submit
             setTimeout(() => {
                 window.location.href = "/dashboard";
             }, 500);
@@ -69,7 +69,7 @@ function login(event) {
             errorMsg = "Unexpected error occurred.";
         }
         //print out error for incorrect username and password
-        $('#rxData').text(errorMsg).css("color", "red"); 
+        $('#rxData').text(errorMsg).css("color", "red");
     });
 }
 
@@ -80,8 +80,8 @@ $(function () {
     });
     //submit button redirects to login function
     $('#submit').click(function (event) {
-    
-        event.preventDefault(); 
+
+        event.preventDefault();
         console.log("submit running!");
         login(event);
     });

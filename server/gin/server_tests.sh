@@ -6,7 +6,7 @@
 #dashboard="http://server:8080/dashboard/"
 #iterations=100
 #
-## Test users
+## test users
 #
 ## Insert new users
 #for ((i = 0; i < iterations; i++)); do
