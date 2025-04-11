@@ -1,21 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HTML CSS Website</title>
+  <title>Daily Nutrient Dashboard</title>
   <link rel="stylesheet" href="/public/css/dashboard.css" />
   <link
-          rel="stylesheet"
-          href="https://use.fontawesome.com/releases/v5.14.0/css/all.css"
-          integrity="sha384-HzLeBuhoNPvSl5KYnjx0BT+WB0QEEqLprO+NBkkk5gbc67FTaL7XIGa2w1L0Xbgc"
-          crossorigin="anonymous"
+    rel="stylesheet"
+    href="https://use.fontawesome.com/releases/v5.14.0/css/all.css"
+    integrity="sha384-HzLeBuhoNPvSl5KYnjx0BT+WB0QEEqLprO+NBkkk5gbc67FTaL7XIGa2w1L0Xbgc"
+    crossorigin="anonymous"
   />
-  <link
-          href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@400;700&display=swap"
-          rel="stylesheet"
-  />
+  <link rel="icon" href="/public/favicon.ico" type="image/x-icon">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <!-- Navbar Section -->
@@ -23,12 +20,8 @@
   <div class="navbar__container">
     <a href="#" id="navbar__logo">
       <img src="/public/images/UofA.png" alt="New Logo" style="height: 50px; width: 50px; margin-right: 15px;">
-      Kay-Phos
+      Nutrient Dashboard
     </a>
-    <div class="navbar__toggle" id="mobile-menu">
-      <span class="bar"></span> <span class="bar"></span>
-      <span class="bar"></span>
-    </div>
     <ul class="navbar__menu">
       <li class="navbar__btn">
         <a href="http://localhost:8080/dashboard/user-meal-history" class="button">History</a>
@@ -49,37 +42,140 @@
   </div>
 </nav>
 
-<!-- Services Section -->
-<div class="services">
-  <div class="services__container">
-    <div class="services__container">
-      <div class="services__card">
-        <h2 class="blue-text">User Meal History</h2>
-        <a href="http://localhost:8080/dashboard/user-meal-history" class="button">
-          <img src="/public/images/graph.png" alt="History Icon" class="button-image">
-        </a>
-      </div>
-      <div class="services__card">
-        <h2 class="blue-text">AI Food</h2>
-        <a href="http://localhost:8080/dashboard/ai-food-search" class="button">
-          <img src="/public/images/AI.jpg" alt="AI Icon" class="button-image">
-        </a>
-      </div>
-      <div class="services__card">
-        <h2 class="blue-text">Manual Search</h2>
-        <a href="http://localhost:8080/dashboard/manual-food-search" class="button">
-          <img src="/public/images/Search.jpg" alt="Search Icon" class="button-image">
-        </a>
-      </div>
-      <div class="services__card">
-        <h2 class="blue-text">User Define Meal</h2>
-        <a href="http://localhost:8080/dashboard/user-define-meal" class="button">
-          <img src="/public/images/Manual.jpg" alt="Meal Icon" class="button-image">
-        </a>
-      </div>
-      <script src="/public/js/dashboard.js"></script>
-    </div>
+<!-- Welcome Message Section -->
+<div style="text-align: center; margin-top: 60px;">
+  <h3 id="welcomeMessage">Welcome!</h3>
+</div>
+
+<!-- Current Date and Time Section -->
+<div style="text-align: center; margin-top: 20px;">
+  <p><strong>Current Date and Time:</strong> <span id="currentDateTime"></span></p>
+</div>
+
+<!-- Pie Charts Section -->
+<div class="pie-charts">
+  <!-- Phosphorous Chart -->
+  <div style="text-align: center; margin-bottom: 20px;">
+    <canvas id="phosphorousChart" width="300" height="300"></canvas>
+    <p class="pie-chart-text">
+      <strong>Phosphorous Consumed:</strong> <span id="phosphorousTotal">Loading...</span> mg<br />
+      <strong>Phosphorous Remaining:</strong> <span id="phosphorousRemaining">Loading...</span> mg
+    </p>
+  </div>
+  <!-- Potassium Chart -->
+  <div style="text-align: center; margin-bottom: 20px;">
+    <canvas id="potassiumChart" width="300" height="300"></canvas>
+    <p class="pie-chart-text">
+      <strong>Potassium Consumed:</strong> <span id="potassiumTotal">Loading...</span> mg<br />
+      <strong>Potassium Remaining:</strong> <span id="potassiumRemaining">Loading...</span> mg
+    </p>
   </div>
 </div>
+
+<script>
+  const username = localStorage.getItem('username');
+  if (username && username.trim() !== "") {
+    document.getElementById('welcomeMessage').textContent = `Welcome, ${username}!`;
+  } else {
+    document.getElementById('welcomeMessage').textContent = 'Welcome!';
+  }
+
+  function updateDateTime() {
+    const now = new Date();
+    document.getElementById('currentDateTime').textContent = now.toLocaleString();
+  }
+  setInterval(updateDateTime, 1000);
+
+  function initializeTotals() {
+    const totalPotassium = parseFloat(localStorage.getItem("totalPotassium")) || 0;
+    const totalPhosphorus = parseFloat(localStorage.getItem("totalPhosphorus")) || 0;
+
+    updatePieCharts(totalPotassium, totalPhosphorus);
+  }
+
+  function updatePieCharts(totalPotassium, totalPhosphorus) {
+    const potassiumRemaining = Math.max(3400 - totalPotassium, 0);
+    const phosphorousRemaining = Math.max(700 - totalPhosphorus, 0);
+
+    document.getElementById('phosphorousTotal').textContent = totalPhosphorus;
+    document.getElementById('phosphorousRemaining').textContent = phosphorousRemaining;
+
+    document.getElementById('potassiumTotal').textContent = totalPotassium;
+    document.getElementById('potassiumRemaining').textContent = potassiumRemaining;
+
+    potassiumChart.data.datasets[0].data = [totalPotassium, potassiumRemaining];
+    potassiumChart.update();
+
+    phosphorousChart.data.datasets[0].data = [totalPhosphorus, phosphorousRemaining];
+    phosphorousChart.update();
+  }
+
+  function resetAtMidnight() {
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    
+    // Check if it's midnight (hour 0, minute 0)
+    if (currentHour === 0 && currentMinute === 0) {
+      // Reset totals in localStorage
+      localStorage.setItem("totalPotassium", 0);
+      localStorage.setItem("totalPhosphorus", 0);
+
+      // Reset pie charts
+      updatePieCharts(0, 0);
+
+      console.log("Pie charts reset at midnight.");
+    }
+  }
+
+  const ctxPotassium = document.getElementById('potassiumChart').getContext('2d');
+  const potassiumChart = new Chart(ctxPotassium, {
+    type: 'pie',
+    data: {
+      labels: ['Consumed', 'Remaining'],
+      datasets: [{
+        data: [0, 3400], // Initial values
+        backgroundColor: ['#EF4056', '#81D3EB']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        title: { display: true, text: 'Potassium Intake (Max: 3400 mg)' }
+      }
+    }
+  });
+
+  const ctxPhosphorous = document.getElementById('phosphorousChart').getContext('2d');
+  const phosphorousChart = new Chart(ctxPhosphorous, {
+    type: 'pie',
+    data: {
+      labels: ['Consumed', 'Remaining'],
+      datasets: [{
+        data: [0, 700], // Initial values
+        backgroundColor: ['#EF4056', '#70B865']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: 'top' },
+        title: { display: true, text: 'Phosphorous Intake (Max: 700 mg)' }
+      }
+    }
+  });
+
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'mealUpdated' && event.newValue === 'true') {
+      initializeTotals(); // Refresh totals from localStorage
+      localStorage.setItem('mealUpdated', 'false'); // Reset flag
+    }
+  });
+
+  // Initialize totals and start midnight reset check
+  initializeTotals();
+  setInterval(resetAtMidnight, 10000); // Check every 60 seconds
+</script>
 </body>
 </html>
