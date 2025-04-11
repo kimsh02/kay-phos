@@ -68,6 +68,7 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 			c.SetCookie("token", "", -1, "/", "", false, true)
 			c.Redirect(http.StatusFound, "/")
 		})
+		dashboard.GET("/settings", handlers.Settings)
 		// fndds
 		// update: support json requests
 		// test

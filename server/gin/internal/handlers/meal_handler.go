@@ -12,6 +12,7 @@ import (
 )
 
 type mealEntryRequest struct {
+	MealName string    `json:"meal_name"`
 	FoodCode int       `json:"foodCode"`
 	Time     time.Time `json:"time"`
 }
@@ -29,11 +30,12 @@ func (app *App) InsertMealHistory(c *gin.Context) {
 		return
 	}
 
-	// Attempt to decode as grouped meal
+	// Grouped meal support (newer AI/manual flows)
 	var grouped models.MealGroup
 	if err := c.ShouldBindJSON(&grouped); err == nil && grouped.MealName != "" && len(grouped.Ingredients) > 0 {
 		for _, ing := range grouped.Ingredients {
 			if err := repositories.InsertCustomMeal(app.DBPool, userID, grouped.MealName, grouped.Time, ing); err != nil {
+				log.Printf("❌ Insert failed: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert custom meal"})
 				return
 			}
@@ -42,7 +44,7 @@ func (app *App) InsertMealHistory(c *gin.Context) {
 		return
 	}
 
-	// Fallback: handle legacy { entries: [{foodCode, time}] }
+	// Legacy fallback
 	var legacy struct {
 		Entries []struct {
 			FoodCode int       `json:"foodCode"`
@@ -59,6 +61,10 @@ func (app *App) InsertMealHistory(c *gin.Context) {
 		c.JSON(http.StatusCreated, gin.H{"message": "Legacy meals saved successfully"})
 		return
 	}
+
+	// Debug: log full body if format is invalid
+	raw, _ := c.GetRawData()
+	log.Println("⚠️ Raw request body:", string(raw))
 
 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meal format"})
 }

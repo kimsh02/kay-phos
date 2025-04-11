@@ -142,18 +142,18 @@ async function fetchNutrientData(query) {
 
   return json.results.map(item => {
     const multiplier = grams / 100;
-
     return {
       foodCode: item["Food Code"],
       name: item["Description"],
       grams: grams,
-      calories: (item["Calories"] * multiplier).toFixed(2),
-      protein: (item["Protein (g)"] * multiplier).toFixed(2),
-      phosphorus: (item["Phosphorus (mg)"] * multiplier).toFixed(2),
-      potassium: (item["Potassium (mg)"] * multiplier).toFixed(2),
-      carbs: (item["Carbohydrate (g)"] * multiplier).toFixed(2)
+      calories: +(item["Calories"] * multiplier).toFixed(2),      // ✅ number
+      protein: +(item["Protein (g)"] * multiplier).toFixed(2),    // ✅ number
+      phosphorus: +(item["Phosphorus (mg)"] * multiplier).toFixed(2),
+      potassium: +(item["Potassium (mg)"] * multiplier).toFixed(2),
+      carbs: +(item["Carbohydrate (g)"] * multiplier).toFixed(2)
     };
   });
+
 }
 
 
@@ -203,6 +203,8 @@ async function addToMealHistory(item) {
       carbs: item.carbs
     }]
   };
+  console.log("📤 Sending payload to backend:", JSON.stringify(payload, null, 2));
+
 
   try {
     const res = await fetch("/dashboard/api/user-meal-history", {
