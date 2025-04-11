@@ -3,11 +3,11 @@
 # make fndds_data directory
 mkdir -p fndds_data
 
-# drop kayphos database
-dropdb --if-exists $PGDATABASE -U postgres
-
-# create kayphos database
-createdb $PGDATABASE -U postgres
+## drop kayphos database
+#dropdb --if-exists $PGDATABASE -U postgres
+#
+## create kayphos database
+#createdb $PGDATABASE -U postgres
 
 # download food item dataset
 if [ ! -f "fndds_data/fndds_data/2021-2023.xlsx" ]; then
@@ -39,6 +39,10 @@ psql -d kayphos -U postgres -f sql_scripts/user_table.sql
 
 # create meal table
 psql -d kayphos -U postgres -f sql_scripts/meal_table.sql
+
+#Enable similarity
+psql -d kayphos -U postgres -f -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+
 
 # create user sessions table
 psql -d kayphos -U postgres -f sql_scripts/user_sessions.sql

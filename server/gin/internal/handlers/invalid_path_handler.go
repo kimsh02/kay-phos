@@ -13,7 +13,7 @@ import (
 
 func InvalidPath(c *gin.Context) {
 	// Call token middleware
-	// If user is not logged in, redirect to login
+	// If user is not logged in, redirect to log in
 	middleware.ValidateTokenMiddleware()(c)
 	// Else, stay on current page
 	if !c.IsAborted() {

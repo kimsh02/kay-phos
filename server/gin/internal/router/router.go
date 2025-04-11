@@ -1,11 +1,11 @@
 package router
 
 import (
+	"github.com/kimsh02/kay-phos/server/gin/internal/router/internal/middleware"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/kimsh02/kay-phos/server/gin/internal/handlers"
-	"github.com/kimsh02/kay-phos/server/gin/internal/middleware"
 )
 
 func NewRouter() *gin.Engine {
@@ -37,33 +37,45 @@ func NewRouter() *gin.Engine {
 
 func InitRoutes(router *gin.Engine, app *handlers.App) {
 
-	// Set entry routes
+	// Set public entry routes
 	router.GET("/", handlers.LoginPage)
 	router.POST("/", handlers.MakeUserHandler(app.LoginUser))
 	router.GET("/new-account/", handlers.NewAccountPage)
 	router.POST("/new-account/", handlers.MakeUserHandler(app.CreateUser))
 
 	// Set protected routes
-	api := router.Group("/dashboard/")
+	dashboard := router.Group("/dashboard/")
 	{
-		// Apply user session middleware
-		api.Use(middleware.ValidateTokenMiddleware())
-		api.Use(func(c *gin.Context) {
+		dashboard.Use(middleware.ValidateTokenMiddleware())
+		dashboard.Use(func(c *gin.Context) {
 			c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
 			c.Header("Pragma", "no-cache")
 			c.Header("Expires", "0")
 			c.Next()
 		})
-
-		api.GET("/", handlers.DashboardPage)
-		api.GET("/manual-food-search/", handlers.ManualFoodSearchPage)
-		api.GET("/ai-food-search/", handlers.AIFoodSearchPage)
-		api.GET("/user-define-meal", handlers.UserDefineMealPage)
-		api.GET("/user-meal-history", handlers.UserMealHistoryPage)
+		dashboard.GET("/", handlers.DashboardPage)
+		dashboard.GET("/manual-food-search/", handlers.ManualFoodSearchPage)
+		dashboard.GET("/ai-food-search/", handlers.AIFoodSearchPage)
+		dashboard.GET("/user-define-meal", handlers.UserDefineMealPage)
+		dashboard.GET("/user-meal-history", handlers.UserMealHistoryPage)
+		dashboard.GET("/foodcode", app.GetFoodCode)
+		dashboard.GET("/api/user-meal-history", app.GetMealHistory)
+		dashboard.DELETE("/user-meal-history", app.DeleteMealEntry)
+		dashboard.GET("/search-food", app.SearchFood)
+		dashboard.GET("/autocomplete", app.AutocompleteSuggestions)
+		dashboard.GET("/logout", func(c *gin.Context) {
+			//Clear session token
+			c.SetCookie("token", "", -1, "/", "", false, true)
+			c.Redirect(http.StatusFound, "/")
+		})
+		dashboard.GET("/settings", handlers.Settings)
+		dashboard.GET("/api/user-logged-meals", app.GetLoggedMeals)
+		dashboard.GET("/api/nutrient-history", app.GetNutrientHistory)
 		// fndds
-		// TODO: support json requests
+		// update: support json requests
 		// test
-		api.GET("/fndds/:query", app.SearchFnddsFoodItems)
+		dashboard.POST("/calculate-intake", app.CalculateIntake)
+		dashboard.POST("/api/user-meal-history", app.InsertMealHistory)
 
 	}
 
