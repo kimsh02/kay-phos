@@ -301,3 +301,7 @@ select {
 .autocomplete-list li:hover {
   background-color: #f0f0f0;
 }
+.result-card button {
+  margin-right: 10px;
+  margin-top: 10px;
+}

@@ -1,18 +1,13 @@
-CREATE TABLE IF NOT EXISTS meals (
-                                     user_id UUID NOT NULL,
-                                     meal_name TEXT NOT NULL,
-                                     description TEXT NOT NULL, -- ingredient name
-                                     time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                     grams FLOAT,
-                                     calories FLOAT,
-                                     protein FLOAT,
-                                     carbs FLOAT,
-                                     potassium FLOAT,
-                                     Phosphorus FLOAT,
-                                     PRIMARY KEY (user_id, meal_name, description, time),
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-    );
+-- DROP TABLE IF EXISTS meals;
 
--- Index for fast lookups
-CREATE INDEX IF NOT EXISTS idx_meals_user_id ON meals(user_id);
-CREATE INDEX IF NOT EXISTS idx_meal_name_time ON meals(meal_name, time);
+CREATE TABLE meals (
+                       id SERIAL PRIMARY KEY,
+                       user_id UUID NOT NULL REFERENCES users(user_id),
+                       meal_name TEXT NOT NULL,
+                       time TIMESTAMPTZ DEFAULT now(),
+                       meal_type TEXT CHECK (meal_type IN ('favorite', 'history')) NOT NULL,
+                       ingredients JSONB NOT NULL,
+                       totals JSONB NOT NULL
+);
+
+CREATE INDEX idx_meals_user_id ON meals(user_id);

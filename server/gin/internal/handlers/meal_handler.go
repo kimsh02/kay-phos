@@ -12,6 +12,7 @@ import (
 )
 
 type mealEntryRequest struct {
+	MealName string    `json:"meal_name"`
 	FoodCode int       `json:"foodCode"`
 	Time     time.Time `json:"time"`
 }
@@ -29,20 +30,38 @@ func (app *App) InsertMealHistory(c *gin.Context) {
 		return
 	}
 
-	// Attempt to decode as grouped meal
+	// Grouped meal support (newer AI/manual flows)
 	var grouped models.MealGroup
 	if err := c.ShouldBindJSON(&grouped); err == nil && grouped.MealName != "" && len(grouped.Ingredients) > 0 {
-		for _, ing := range grouped.Ingredients {
-			if err := repositories.InsertCustomMeal(app.DBPool, userID, grouped.MealName, grouped.Time, ing); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert custom meal"})
+		log.Printf("📥 Received grouped meal: %s (%s)", grouped.MealName, grouped.MealType)
+
+		switch grouped.MealType {
+		case "favorite":
+			if err := repositories.InsertCustomMeal(app.DBPool, userID, grouped.MealName, grouped.Time, grouped.Ingredients); err != nil {
+				log.Printf("❌ InsertCustomMeal failed: %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save favorite meal"})
 				return
 			}
+			c.JSON(http.StatusCreated, gin.H{"message": "Favorite meal saved"})
+			return
+
+		case "history":
+			if err := repositories.InsertLoggedMeal(app.DBPool, userID, grouped.MealName, grouped.Time, grouped.Ingredients); err != nil {
+				log.Printf("❌ InsertLoggedMeal failed: %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to log meal"})
+				return
+			}
+			c.JSON(http.StatusCreated, gin.H{"message": "Meal logged to history"})
+			return
+
+		default:
+			log.Println("❌ Unknown meal type:", grouped.MealType)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meal type"})
+			return
 		}
-		c.JSON(http.StatusCreated, gin.H{"message": "Grouped meal saved successfully"})
-		return
 	}
 
-	// Fallback: handle legacy { entries: [{foodCode, time}] }
+	// Legacy fallback
 	var legacy struct {
 		Entries []struct {
 			FoodCode int       `json:"foodCode"`
@@ -59,6 +78,10 @@ func (app *App) InsertMealHistory(c *gin.Context) {
 		c.JSON(http.StatusCreated, gin.H{"message": "Legacy meals saved successfully"})
 		return
 	}
+
+	// Debug: log full body if format is invalid
+	raw, _ := c.GetRawData()
+	log.Println("⚠️ Raw request body:", string(raw))
 
 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meal format"})
 }
@@ -110,7 +133,7 @@ func (a *App) GetMealHistory(c *gin.Context) {
 		return
 	}
 
-	meals, err := repositories.GetMealsByUserID(a.DBPool, userID)
+	meals, err := repositories.GetMealsByUserID(a.DBPool, userID, "favorite")
 	if err != nil {
 		log.Println("❌ Failed to fetch meals from DB:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch meals"})
@@ -118,6 +141,23 @@ func (a *App) GetMealHistory(c *gin.Context) {
 	}
 
 	log.Printf("✅ Returning %d meals\n", len(meals))
+	c.JSON(http.StatusOK, meals)
+}
+
+func (a *App) GetLoggedMeals(c *gin.Context) {
+	claims := c.MustGet("claims").(*models.Claims)
+	userID, err := uuid.Parse(claims.UserID)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user token"})
+		return
+	}
+
+	meals, err := repositories.GetMealsByUserID(a.DBPool, userID, "history")
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch logged meals"})
+		return
+	}
+
 	c.JSON(http.StatusOK, meals)
 }
 
@@ -148,4 +188,35 @@ func (app *App) DeleteMealEntry(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Meal deleted"})
+}
+
+func (a *App) GetNutrientHistory(c *gin.Context) {
+	claims := c.MustGet("claims").(*models.Claims)
+	userID, err := uuid.Parse(claims.UserID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
+	}
+
+	start := c.Query("start") + "T00:00:00"
+	end := c.Query("end") + "T23:59:59"
+
+	if start == "" || end == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing date range"})
+		return
+	}
+
+	data, err := repositories.FetchNutrientHistory(a.DBPool, userID, start, end)
+	if err != nil {
+		log.Printf("❌ Failed to fetch nutrient history: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch nutrient history"})
+		return
+	}
+
+	// ✅ Ensure we return [] even if no results
+	if data == nil {
+		data = []repositories.DailyNutrientTotals{}
+	}
+
+	c.JSON(http.StatusOK, data)
 }

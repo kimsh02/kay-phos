@@ -453,3 +453,21 @@ button {
 .toast.success { background-color: #4CAF50; }
 .toast.error { background-color: #d9534f; }
 .toast.info { background-color: #2196F3; }
+
+.log-meal {
+  flex: 1;
+  padding: 15px 20px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  text-align: center;
+  transition: 0.3s ease-in-out;
+  background-color: #0C234B;
+  margin: 0 10px;
+}
+
+.log-meal:hover {
+  background-color: #092030;
+}

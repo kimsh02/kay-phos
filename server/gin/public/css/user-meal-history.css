@@ -222,3 +222,57 @@ canvas {
   width: 50%; /* Reduces the width to half */
   height: auto; /* Maintains the aspect ratio */
 }
+
+.history-wrapper {
+  max-width: 960px;
+  margin: 2rem auto;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.meal-block {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  padding: 1rem;
+  background-color: #fff;
+}
+
+.meal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.meal-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.meal-block table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.meal-block th, .meal-block td {
+  border: 1px solid #ddd;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+.delete-meal-btn {
+  background-color: #f44336;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#loggedMeals {
+  padding: 1rem;
+}

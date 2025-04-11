@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   document.getElementById("searchButton").addEventListener("click", handleSearch);
   document.getElementById("sortSelect").addEventListener("change", applyFilters);
-});
+  });
 
 document.getElementById("queryInput").addEventListener("input", async function () {
   const query = this.value.trim();
@@ -104,7 +104,7 @@ function renderResults(results) {
     const card = document.createElement('div');
     card.className = 'result-card';
 
-    const foodData = JSON.stringify(item).replace(/'/g, "&#39;"); // escape quotes for safety
+    const foodData = JSON.stringify(item).replace(/'/g, "&#39;");
 
     card.innerHTML = `
       <h3>${item.name || item["Description"]}</h3>
@@ -116,12 +116,93 @@ function renderResults(results) {
         <li><strong>Potassium:</strong> ${item.potassium}mg</li>
         <li><strong>Carbs:</strong> ${item.carbs}g</li>
       </ul>
-      <button class="add-to-meal" data-food='${foodData}'>Add to Meal History</button>
     `;
 
-    container.appendChild(card); // Add card to the results container
+    // ⬇️ Create button container
+    const buttonGroup = document.createElement("div");
+    buttonGroup.style.display = "flex";
+    buttonGroup.style.justifyContent = "space-between";
+    buttonGroup.style.alignItems = "center";
+    buttonGroup.style.marginTop = "10px";
+
+
+    // 🟨 Add to Meal History button (existing)
+    // Existing button (left side)
+    const addButton = document.createElement("button");
+    addButton.className = "btn add-to-meal";
+    addButton.textContent = "Add to Meal History";
+    addButton.dataset.food = foodData;
+    addButton.style.flex = "1";
+    addButton.style.marginRight = "10px";
+
+// New log button (right side, larger)
+    const logButton = document.createElement("button");
+    logButton.className = "btn log-meal";
+    logButton.textContent = "Log This Meal";
+    logButton.dataset.food = foodData;
+    logButton.style.flex = "2";
+    logButton.style.padding = "12px 18px";
+    logButton.style.fontSize = "1rem";
+    logButton.style.backgroundColor = "#4CAF50";
+    logButton.style.color = "white";
+    logButton.style.border = "none";
+    logButton.style.borderRadius = "6px";
+    logButton.style.boxShadow = "0px 2px 4px rgba(0,0,0,0.2)";
+    logButton.style.cursor = "pointer";
+
+
+    buttonGroup.appendChild(addButton);
+    buttonGroup.appendChild(logButton);
+    card.appendChild(buttonGroup);
+
+    container.appendChild(card);
   });
 }
+
+document.addEventListener("click", async function (e) {
+  if (e.target.classList.contains("log-meal")) {
+    const foodItem = JSON.parse(e.target.dataset.food);
+
+    const payload = {
+      mealName: prompt("Enter a name for this meal:", foodItem.name) || `Manual Meal - ${new Date().toISOString().split("T")[0]}`,
+      time: new Date().toISOString(),
+      mealType: "history",
+      ingredients: [{
+        name: foodItem.name,
+        grams: foodItem.grams,
+        calories: foodItem.calories,
+        protein: foodItem.protein,
+        phosphorus: foodItem.phosphorus,
+        potassium: foodItem.potassium,
+        carbs: foodItem.carbs
+      }]
+    };
+
+    try {
+      const res = await fetch("/dashboard/api/user-meal-history", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const msg = await res.text();
+        console.error("❌ Log failed:", msg);
+        alert("Failed to log meal.");
+        return;
+      }
+
+      // ✅ Redirect to user meal history
+      window.location.href = "/dashboard/user-meal-history";
+
+    } catch (err) {
+      console.error("❌ Log error:", err);
+      alert("Unexpected error during meal log.");
+    }
+  }
+});
+
 // Event delegation to handle all "Add to Meal" buttons
 document.addEventListener("click", async function (e) {
   if (e.target.classList.contains("add-to-meal")) {
@@ -142,18 +223,18 @@ async function fetchNutrientData(query) {
 
   return json.results.map(item => {
     const multiplier = grams / 100;
-
     return {
       foodCode: item["Food Code"],
       name: item["Description"],
       grams: grams,
-      calories: (item["Calories"] * multiplier).toFixed(2),
-      protein: (item["Protein (g)"] * multiplier).toFixed(2),
-      phosphorus: (item["Phosphorus (mg)"] * multiplier).toFixed(2),
-      potassium: (item["Potassium (mg)"] * multiplier).toFixed(2),
-      carbs: (item["Carbohydrate (g)"] * multiplier).toFixed(2)
+      calories: +(item["Calories"] * multiplier).toFixed(2),      // ✅ number
+      protein: +(item["Protein (g)"] * multiplier).toFixed(2),    // ✅ number
+      phosphorus: +(item["Phosphorus (mg)"] * multiplier).toFixed(2),
+      potassium: +(item["Potassium (mg)"] * multiplier).toFixed(2),
+      carbs: +(item["Carbohydrate (g)"] * multiplier).toFixed(2)
     };
   });
+
 }
 
 
@@ -192,6 +273,7 @@ async function addToMealHistory(item) {
   const payload = {
     mealName: prompt("Enter a name for this meal:", item.name),
     time: new Date().toISOString(),
+    mealType: "favorite",
     ingredients: [{
       name: item.name,
       foodCode: item.foodCode,
@@ -203,6 +285,8 @@ async function addToMealHistory(item) {
       carbs: item.carbs
     }]
   };
+  console.log("📤 Sending payload to backend:", JSON.stringify(payload, null, 2));
+
 
   try {
     const res = await fetch("/dashboard/api/user-meal-history", {

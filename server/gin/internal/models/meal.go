@@ -20,6 +20,7 @@ type Ingredient struct {
 type MealGroup struct {
 	MealName    string       `json:"mealName"`
 	Time        time.Time    `json:"time"`
+	MealType    string       `json:"mealType"`
 	Ingredients []Ingredient `json:"ingredients"`
 }
 

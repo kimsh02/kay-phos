@@ -18,143 +18,72 @@ function parseCSV(csvText) {
   return records;
 }
 
-async function loadCsvDataAndUpdateChart(beginDate, endDate) {
+async function loadGraphDataFromDB(beginDate, endDate) {
   try {
-    const response = await fetch("/public/html/phosphorous_potassium_intake_with_time.csv", {
-      credentials: "include" // Ensures cookies are sent with the request
-    });
-    if (!response.ok) {
-      throw new Error("Could not fetch CSV file. Status: " + response.status);
-    }
-    const csvText = await response.text();
-
-    const parsedData = parseCSV(csvText);
-
-    const records = parsedData.map(item => ({
-      DateTime: new Date(item.DateTime),
-      Phosphorous: Number(item.Phosphorous),
-      Potassium: Number(item.Potassium)
-    }));
-
-    let filteredRecords = records;
-    if (beginDate && endDate) {
-      const begin = new Date(beginDate);
-      const end = new Date(endDate);
-      filteredRecords = records.filter(record => {
-        const recordDate = record.DateTime;
-        return recordDate >= new Date(beginDate + "T00:00:00") &&
-            recordDate <= new Date(endDate + "T23:59:59");
-      });
-    }
-
-    filteredRecords.sort((a, b) => a.DateTime - b.DateTime);
-
-    const phosphorousAggregatedRecords = {};
-    const potassiumAggregatedRecords = {};
-    filteredRecords.forEach(record => {
-      const d = record.DateTime;
-      const dateKey =
-          d.getFullYear() + "-" +
-          String(d.getMonth() + 1).padStart(2, "0") + "-" +
-          String(d.getDate()).padStart(2, "0");
-
-      if (!phosphorousAggregatedRecords[dateKey]) {
-        phosphorousAggregatedRecords[dateKey] = record.Phosphorous;
-      } else {
-        phosphorousAggregatedRecords[dateKey] += record.Phosphorous;
-      }
-
-      if (!potassiumAggregatedRecords[dateKey]) {
-        potassiumAggregatedRecords[dateKey] = record.Potassium;
-      } else {
-        potassiumAggregatedRecords[dateKey] += record.Potassium;
-      }
+    const response = await fetch(`/dashboard/api/nutrient-history?start=${beginDate}&end=${endDate}`, {
+      credentials: "include"
     });
 
-    const aggregatedArray = Object.keys(phosphorousAggregatedRecords).map(key => ({
-      date: key,
-      phosphorousTotal: phosphorousAggregatedRecords[key],
-      potassiumTotal: potassiumAggregatedRecords[key]
-    }));
-    aggregatedArray.sort((a, b) => new Date(a.date) - new Date(b.date));
+    if (!response.ok) throw new Error("Failed to load graph data");
 
-    const labels = aggregatedArray.map(item => item.date);
-    const phosphorousDataPoints = aggregatedArray.map(item => item.phosphorousTotal);
-    const potassiumDataPoints = aggregatedArray.map(item => item.potassiumTotal);
+    const data = await response.json();
 
-    const ctx = document.getElementById("historyChart").getContext("2d");
-    if (chart) {
-      chart.destroy();
-    }
-    chart = new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: labels,
-        datasets: [{
-          label: "Phosphorous Intake (mg)",
-          data: phosphorousDataPoints,
-          borderColor: "#1E5288",
-          backgroundColor: "rgba(30, 82, 136, 0.2)",
-          fill: true,
-          tension: 0.1
-        }]
-      },
-      options: {
-        responsive: false,
-        scales: {
-          x: {
-            title: { display: true, text: "Date" }
-          },
-          y: {
-            title: { display: true, text: "Phosphorous Intake (mg)" }
-          }
-        }
-      }
-    });
+    console.log("🔍 Nutrient history raw response:", data);
 
-    const potassiumCtx = document.getElementById("potassiumChart").getContext("2d");
-    if (potassiumChart) {
-      potassiumChart.destroy();
-    }
-    potassiumChart = new Chart(potassiumCtx, {
-      type: "line",
-      data: {
-        labels: labels,
-        datasets: [{
-          label: "Potassium Intake (mg)",
-          data: potassiumDataPoints,
-          //borderColor: "#E07B39",
-          borderColor: "#EF4056",
-          backgroundColor: "rgba(224, 123, 57, 0.2)",
-          fill: true,
-          tension: 0.1
-        }]
-      },
-      options: {
-        responsive: false,
-        scales: {
-          x: {
-            title: { display: true, text: "Date" }
-          },
-          y: {
-            title: { display: true, text: "Potassium Intake (mg)" }
-          }
-        }
-      }
-    });
-  } catch (error) {
-    console.error("Error loading or updating chart with CSV data:", error);
+    if (!Array.isArray(data)) throw new Error("Invalid format");
+
+    const labels = data.map(row => row.date);
+    const phosphorousData = data.map(row => row.phosphorousTotal);
+    const potassiumData = data.map(row => row.potassiumTotal);
+
+    renderChart("historyChart", "Phosphorous Intake (mg)", labels, phosphorousData, "#1E5288");
+    renderChart("potassiumChart", "Potassium Intake (mg)", labels, potassiumData, "#EF4056");
+  } catch (err) {
+    console.error("❌ Error loading nutrient history from DB:", err);
   }
 }
+
+function renderChart(canvasId, label, labels, dataPoints, color) {
+  const ctx = document.getElementById(canvasId).getContext("2d");
+  const chartInstance = canvasId === "historyChart" ? chart : potassiumChart;
+  if (chartInstance) chartInstance.destroy();
+
+  const newChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: label,
+        data: dataPoints,
+        borderColor: color,
+        backgroundColor: color + "33", // semi-transparent fill
+        fill: true,
+        tension: 0.1
+      }]
+    },
+    options: {
+      responsive: false,
+      scales: {
+        x: { title: { display: true, text: "Date" }},
+        y: { title: { display: true, text: label }}
+      }
+    }
+  });
+
+  if (canvasId === "historyChart") chart = newChart;
+  else potassiumChart = newChart;
+}
+
 
 document.getElementById("dateRangeForm").addEventListener("submit", function(event) {
   event.preventDefault();
   const beginDate = document.getElementById("beginDate").value;
   const endDate = document.getElementById("endDate").value;
-  loadCsvDataAndUpdateChart(beginDate, endDate);
+  loadGraphDataFromDB(beginDate, endDate);
 });
 
-window.onload = function() {
+
+window.onload = function () {
   const today = new Date();
   const oneWeekAgo = new Date(today);
   oneWeekAgo.setDate(today.getDate() - 7);
@@ -165,5 +94,81 @@ window.onload = function() {
   document.getElementById("beginDate").value = formattedOneWeekAgo;
   document.getElementById("endDate").value = formattedToday;
 
-  loadCsvDataAndUpdateChart(formattedOneWeekAgo, formattedToday);
+  loadGraphDataFromDB(formattedOneWeekAgo, formattedToday);
+  loadLoggedMeals();  // ✅ This was not firing before
+
 };
+
+async function loadLoggedMeals() {
+  try {
+    const res = await fetch("/dashboard/api/user-logged-meals", { credentials: "include" });
+    const meals = await res.json();
+
+    renderLoggedMeals(meals);
+  } catch (err) {
+    console.error("❌ Failed to fetch meal history logs:", err);
+    document.getElementById("loggedMeals").innerHTML = "<p>Could not load meal logs.</p>";
+  }
+}
+
+function renderLoggedMeals(meals) {
+  const container = document.getElementById("loggedMeals");
+  container.innerHTML = "";
+
+  if (!meals || meals.length === 0) {
+    container.innerHTML = "<p>No logged meals found.</p>";
+    return;
+  }
+
+  // Group by meal name + timestamp
+  const grouped = {};
+  for (const entry of meals) {
+    const key = `${entry.mealName}||${entry.time}`;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(entry);
+  }
+
+  let html = "";
+  for (const key in grouped) {
+    const [mealName, rawTime] = key.split("||");
+    const mealTime = new Date(rawTime).toLocaleString();
+
+    html += `
+      <div class="meal-block">
+        <div class="meal-header">
+          <div class="meal-meta">
+            <h4>${mealName}</h4>
+            <small>${mealTime}</small>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Ingredient</th><th>Grams</th><th>Calories</th><th>Protein</th><th>Carbs</th><th>Phosphorus</th><th>Potassium</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    grouped[key].forEach(item => {
+      html += `
+        <tr>
+          <td>${item.name}</td>
+          <td>${item.grams}</td>
+          <td>${item.calories}</td>
+          <td>${item.protein}</td>
+          <td>${item.carbs}</td>
+          <td>${item.phosphorus}</td>
+          <td>${item.potassium}</td>
+        </tr>
+      `;
+    });
+
+    html += `
+        </tbody>
+      </table>
+    </div>`;
+  }
+
+  container.innerHTML = html;
+}

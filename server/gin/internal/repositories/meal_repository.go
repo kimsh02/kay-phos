@@ -19,15 +19,15 @@ func InsertMeal(dbPool *pgxpool.Pool, userID uuid.UUID, foodCode int, mealTime t
 }
 
 // GetMealsByUserID fetches all meals for a given user ID
-func GetMealsByUserID(dbPool *pgxpool.Pool, userID uuid.UUID) ([]models.MealEntry, error) {
+func GetMealsByUserID(dbPool *pgxpool.Pool, userID uuid.UUID, mealType string) ([]models.MealEntry, error) {
 	query := `
-	SELECT meal_name, description, time, grams, calories, protein, carbs, phosphorus, potassium
+	SELECT meal_name, time, ingredients, totals
 	FROM meals
-	WHERE user_id = $1
+	WHERE user_id = $1 AND meal_type = $2
 	ORDER BY time DESC;
 	`
 
-	rows, err := dbPool.Query(context.Background(), query, userID)
+	rows, err := dbPool.Query(context.Background(), query, userID, mealType)
 	if err != nil {
 		return nil, err
 	}
@@ -36,37 +36,117 @@ func GetMealsByUserID(dbPool *pgxpool.Pool, userID uuid.UUID) ([]models.MealEntr
 	var meals []models.MealEntry
 	for rows.Next() {
 		var m models.MealEntry
-		if err := rows.Scan(
-			&m.MealName,
-			&m.Name,
-			&m.Time,
-			&m.Grams,
-			&m.Calories,
-			&m.Protein,
-			&m.Carbs,
-			&m.Phosphorus,
-			&m.Potassium,
-		); err != nil {
+		var ingredients []models.Ingredient
+		var totals map[string]float64
+
+		if err := rows.Scan(&m.MealName, &m.Time, &ingredients, &totals); err != nil {
 			return nil, err
 		}
+
+		// Optional: convert totals into fields
+		m.Calories = totals["calories"]
+		m.Protein = totals["protein"]
+		m.Carbs = totals["carbs"]
+		m.Phosphorus = totals["phosphorus"]
+		m.Potassium = totals["potassium"]
+
+		// Attach first ingredient’s name as preview
+		if len(ingredients) > 0 {
+			m.Name = ingredients[0].Name
+			m.Grams = ingredients[0].Grams
+		}
+
 		meals = append(meals, m)
 	}
 	return meals, nil
 }
 
-func InsertCustomMeal(dbPool *pgxpool.Pool, userID uuid.UUID, mealName string, mealTime time.Time, ing models.Ingredient) error {
+func InsertCustomMeal(dbPool *pgxpool.Pool, userID uuid.UUID, mealName string, mealTime time.Time, ingredients []models.Ingredient) error {
+	// Calculate totals from ingredients
+	var totalK, totalP, totalCals, totalPro, totalCarbs float64
+	for _, ing := range ingredients {
+		totalK += ing.Potassium
+		totalP += ing.Phosphorus
+		totalCals += ing.Calories
+		totalPro += ing.Protein
+		totalCarbs += ing.Carbs
+	}
+
+	totals := map[string]float64{
+		"potassium":  totalK,
+		"phosphorus": totalP,
+		"calories":   totalCals,
+		"protein":    totalPro,
+		"carbs":      totalCarbs,
+	}
+
 	_, err := dbPool.Exec(context.Background(), `
-	INSERT INTO meals (
-		user_id, meal_name, time,
-		description, grams, calories, protein, carbs,
-		phosphorus, potassium
-	) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
-`,
-		userID, mealName, mealTime,
-		ing.Name, ing.Grams, ing.Calories, ing.Protein, ing.Carbs,
-		ing.Phosphorus, ing.Potassium)
-	log.Printf("🧠 InsertCustomMeal input: mealName=%s, time=%v, userID=%s, ingredient=%+v\n",
-		mealName, mealTime, userID.String(), ing)
+		INSERT INTO meals (user_id, meal_name, time, meal_type, ingredients, totals)
+		VALUES ($1, $2, $3, 'favorite', $4, $5);
+	`, userID, mealName, mealTime, ingredients, totals)
+
+	log.Printf("💾 InsertCustomMeal (favorite): name=%s user=%s time=%v", mealName, userID, mealTime)
+	return err
+}
+
+type DailyNutrientTotals struct {
+	Date        time.Time `json:"date"`
+	Potassium   float64   `json:"potassiumTotal"`
+	Phosphorous float64   `json:"phosphorousTotal"`
+}
+
+func FetchNutrientHistory(db *pgxpool.Pool, userID uuid.UUID, start, end string) ([]DailyNutrientTotals, error) {
+	query := `
+		SELECT 
+			DATE(time) AS date,
+			SUM((totals->>'potassium')::float) AS potassium,
+			SUM((totals->>'phosphorus')::float) AS phosphorous
+		FROM meals
+		WHERE user_id = $1 AND meal_type = 'history' AND time BETWEEN $2 AND $3
+		GROUP BY DATE(time)
+		ORDER BY DATE(time)
+	`
+
+	rows, err := db.Query(context.Background(), query, userID, start, end)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []DailyNutrientTotals
+	for rows.Next() {
+		var d DailyNutrientTotals
+		if err := rows.Scan(&d.Date, &d.Potassium, &d.Phosphorous); err != nil {
+			return nil, err
+		}
+		results = append(results, d)
+	}
+	return results, nil
+}
+
+func InsertLoggedMeal(dbPool *pgxpool.Pool, userID uuid.UUID, mealName string, mealTime time.Time, ingredients []models.Ingredient) error {
+	// Calculate totals
+	var totalK, totalP, totalCals, totalPro, totalCarbs float64
+	for _, ing := range ingredients {
+		totalK += ing.Potassium
+		totalP += ing.Phosphorus
+		totalCals += ing.Calories
+		totalPro += ing.Protein
+		totalCarbs += ing.Carbs
+	}
+
+	totals := map[string]float64{
+		"potassium":  totalK,
+		"phosphorus": totalP,
+		"calories":   totalCals,
+		"protein":    totalPro,
+		"carbs":      totalCarbs,
+	}
+
+	_, err := dbPool.Exec(context.Background(), `
+		INSERT INTO meals (user_id, meal_name, time, meal_type, ingredients, totals)
+		VALUES ($1, $2, $3, 'history', $4, $5);
+	`, userID, mealName, mealTime, ingredients, totals)
 
 	return err
 }
