@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/google/uuid"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -89,4 +90,30 @@ func (a *App) CreateUser(c *gin.Context, user *models.User) {
 	// c.SetCookie("accountStatus", "created", 5, "/login", "localhost", false, false)
 	// c.Redirect(http.StatusSeeOther, "/login")
 	c.IndentedJSON(http.StatusCreated, gin.H{"message": "User created successfully."})
+}
+
+func (a *App) GetCurrentUserInfo(c *gin.Context) {
+	claimsRaw, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing user context"})
+		return
+	}
+
+	claims, ok := claimsRaw.(*models.Claims)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid token claims"})
+		return
+	}
+
+	user := &models.User{UserID: uuid.MustParse(claims.UserID)}
+
+	// Will fetch FirstName, etc.
+	if err := repositories.GetUser(a.DBPool, user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"firstName": user.FirstName,
+	})
 }

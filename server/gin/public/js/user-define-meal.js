@@ -55,6 +55,8 @@ document.addEventListener("DOMContentLoaded", function () {
       }
 
       alert("✅ Meal saved to favorites and logged to history!");
+      updateTotals(ingredients);
+
       window.location.href = "/dashboard/user-meal-history";
 
     } catch (err) {
@@ -314,6 +316,21 @@ async function deleteMealByNameAndTime(mealName, time) {
     console.error("❌ Error deleting meal:", err);
     alert("Something went wrong.");
   }
+}
+
+function updateTotals(ingredients) {
+  let totalPotassium = 0, totalPhosphorus = 0;
+  ingredients.forEach(i => {
+    totalPotassium += i.potassium || 0;
+    totalPhosphorus += i.phosphorus || 0;
+  });
+
+  const newK = totalPotassium + (parseFloat(localStorage.getItem("totalPotassium")) || 0);
+  const newP = totalPhosphorus + (parseFloat(localStorage.getItem("totalPhosphorus")) || 0);
+
+  localStorage.setItem("totalPotassium", newK);
+  localStorage.setItem("totalPhosphorus", newP);
+  localStorage.setItem("mealUpdated", "true");
 }
 
 

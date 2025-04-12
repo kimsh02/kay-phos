@@ -464,10 +464,11 @@ button {
   border-radius: 8px;
   text-align: center;
   transition: 0.3s ease-in-out;
-  background-color: #0C234B;
   margin: 0 10px;
 }
 
+
+
 .log-meal:hover {
-  background-color: #092030;
+  background-color: #8B0015;
 }

@@ -1,3 +1,4 @@
+
 // Global variables
 let uploadedImage = null; // Store only one image
 let analysisResults = []; // Store food analysis results
@@ -197,8 +198,7 @@ function displayAnalysisResults() {
 
     // Ensure the "Calculate Intake" button appears
     calculateButton.style.display = "flex";
-    saveMealButton.style.display = "flex";
-    logMealButton.style.display = "flex";
+
 
     // Re-attach click event listeners to food rows
     document.querySelectorAll(".food-row").forEach(row => {
@@ -409,6 +409,7 @@ async function saveMealToHistory() {
         }
 
         displayToast("✅ Meal saved successfully!", "success");
+        updateTotals(ingredients);
 
 // 🧭 Redirect to meal history page after short delay
         setTimeout(() => {
@@ -435,6 +436,12 @@ async function sendSelectedFoodsToDB() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ selectedFoods })
         });
+
+        saveMealButton.style.display = "flex";
+        logMealButton.style.display = "flex";
+        calculateButton.style.display = "none";
+
+
 
         const data = await response.json();
 
@@ -542,4 +549,19 @@ function addLogButtonToCard(card, ingredients) {
             .catch(() => displayToast("Failed to log meal.", "error"));
     });
 }
+function updateTotals(ingredients) {
+    let totalPotassium = 0, totalPhosphorus = 0;
+    ingredients.forEach(i => {
+        totalPotassium += i.potassium || 0;
+        totalPhosphorus += i.phosphorus || 0;
+    });
+
+    const newK = totalPotassium + (parseFloat(localStorage.getItem("totalPotassium")) || 0);
+    const newP = totalPhosphorus + (parseFloat(localStorage.getItem("totalPhosphorus")) || 0);
+
+    localStorage.setItem("totalPotassium", newK);
+    localStorage.setItem("totalPhosphorus", newP);
+    localStorage.setItem("mealUpdated", "true");
+}
+
 

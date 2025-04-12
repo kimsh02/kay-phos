@@ -69,6 +69,7 @@ func InitRoutes(router *gin.Engine, app *handlers.App) {
 			c.Redirect(http.StatusFound, "/")
 		})
 		dashboard.GET("/settings", handlers.Settings)
+		dashboard.GET("/api/user-info", app.GetCurrentUserInfo)
 		dashboard.GET("/api/user-logged-meals", app.GetLoggedMeals)
 		dashboard.GET("/api/nutrient-history", app.GetNutrientHistory)
 		// fndds
