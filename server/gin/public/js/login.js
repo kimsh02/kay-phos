@@ -2,7 +2,7 @@
 console.log("login.js is running!");
 
 function login(event) {
-     // Prevent form submission
+    // Prevent form submission
     if (event) event.preventDefault();
     console.log("login function running")
 
@@ -17,7 +17,7 @@ function login(event) {
 
     let txdata = {
 
-        username: username, 
+        username: username,
         inputpassword: password
     };
 
@@ -25,52 +25,52 @@ function login(event) {
     $.ajax({
         url: '/',
         method: 'POST',
-        contentType: 'application/json',  
+        contentType: 'application/json',
         data: JSON.stringify(txdata),
         dataType: 'json',
         //enable cookies in ajax request
         xhrFields: {
-            withCredentials: true 
+            withCredentials: true
         }
     })
-    .done(function (data) {
-        //should redirect if correct username and password or send error message if not
-        console.log("Success response:", data);
-        if (data.message) {  
-            localStorage.setItem("message", data.message); 
-            //add 500ms delay to change of page after pressing submit 
-            setTimeout(() => {
-                window.location.href = "/dashboard";
-            }, 500);
-        } else {
-            console.log("Login failed: No message received.");
-            $('#rxData').text("Login failed: No message received.");
-        }
-    })
-    .fail(function (jqXHR, textStatus, errorThrown) {
-        console.log("AJAX Error:", jqXHR);
-        console.log("Text Status:", textStatus);
-        console.log("Error Thrown:", errorThrown);
-
-
-        if (jqXHR.status === 400 && jqXHR.responseJSON) {
-            console.log("Error Response JSON:", jqXHR.responseJSON);
-            //checking error
-            if (jqXHR.responseJSON.error === "User not found") {
-                errorMsg = "Wrong username";
-            } else if (jqXHR.responseJSON.error === "Incorrect password") {
-                errorMsg = "Wrong password";
+        .done(function (data) {
+            //should redirect if correct username and password or send error message if not
+            console.log("Success response:", data);
+            if (data.message) {
+                localStorage.setItem("message", data.message);
+                //add 500ms delay to change of page after pressing submit
+                setTimeout(() => {
+                    window.location.href = "/dashboard";
+                }, 500);
             } else {
-                errorMsg = "Invalid username or password";
+                console.log("Login failed: No message received.");
+                $('#rxData').text("Login failed: No message received.");
             }
-        } else if (jqXHR.status === 0) {
-            errorMsg = "Server not responding. Is it running?";
-        } else {
-            errorMsg = "Unexpected error occurred.";
-        }
-        //print out error for incorrect username and password
-        $('#rxData').text(errorMsg).css("color", "red"); 
-    });
+        })
+        .fail(function (jqXHR, textStatus, errorThrown) {
+            console.log("AJAX Error:", jqXHR);
+            console.log("Text Status:", textStatus);
+            console.log("Error Thrown:", errorThrown);
+
+
+            if (jqXHR.status === 400 && jqXHR.responseJSON) {
+                console.log("Error Response JSON:", jqXHR.responseJSON);
+                //checking error
+                if (jqXHR.responseJSON.error === "User not found") {
+                    errorMsg = "Wrong username";
+                } else if (jqXHR.responseJSON.error === "Incorrect password") {
+                    errorMsg = "Wrong password";
+                } else {
+                    errorMsg = "Invalid username or password";
+                }
+            } else if (jqXHR.status === 0) {
+                errorMsg = "Server not responding. Is it running?";
+            } else {
+                errorMsg = "Unexpected error occurred.";
+            }
+            //print out error for incorrect username and password
+            $('#rxData').text(errorMsg).css("color", "red");
+        });
 }
 
 $(function () {
@@ -80,8 +80,8 @@ $(function () {
     });
     //submit button redirects to login function
     $('#submit').click(function (event) {
-    
-        event.preventDefault(); 
+
+        event.preventDefault();
         console.log("submit running!");
         login(event);
     });

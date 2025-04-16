@@ -26,7 +26,7 @@ document.getElementById('new-account-form').addEventListener('submit', async fun
     }
 
     try {
-        const response = await fetch('http://localhost:8080/new-account', {
+        const response = await fetch('/new-account', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
