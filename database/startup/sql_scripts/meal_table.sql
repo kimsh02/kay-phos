@@ -1,9 +1,13 @@
+-- DROP TABLE IF EXISTS meals;
+
 CREATE TABLE meals (
-    user_id      UUID NOT NULL,
-    food_code 	 NUMERIC NOT NULL,
-    time         TIMESTAMP NOT NULL,
-    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(user_id), -- Assuming `users` table exists
-    CONSTRAINT fk_food FOREIGN KEY (food_code) REFERENCES fndds_nutrient_values("Food code")
+                       id SERIAL PRIMARY KEY,
+                       user_id UUID NOT NULL REFERENCES users(user_id),
+                       meal_name TEXT NOT NULL,
+                       time TIMESTAMPTZ DEFAULT now(),
+                       meal_type TEXT CHECK (meal_type IN ('favorite', 'history')) NOT NULL,
+                       ingredients JSONB NOT NULL,
+                       totals JSONB NOT NULL
 );
 
-CREATE INDEX idx_user_id ON meals (user_id);
+CREATE INDEX idx_meals_user_id ON meals(user_id);

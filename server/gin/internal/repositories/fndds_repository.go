@@ -2,37 +2,68 @@ package repositories
 
 import (
 	"context"
-	"log"
+	"fmt"
+	"strings"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kimsh02/kay-phos/server/gin/internal/models"
 )
 
-/*
- * fndds_repository interacts with fndds nutrient values table in postgres
- */
+// FnddsQuery performs an websearch_to_tsquery for looser match on description
+func FnddsQuery(db *pgxpool.Pool, ingredientName string) (*[]models.FnddsFoodItem, error) {
+	queries := permuteWords(ingredientName)
+	for _, query := range queries {
+		rows, err := db.Query(context.Background(), `
+		SELECT "Food code", "Main food description", "Potassium (mg)", "Phosphorus (mg)", "Energy (kcal)" AS "Calories (kcal)", "Protein (g)", "Carbohydrate (g)"
+		FROM fndds_nutrient_values
+		WHERE to_tsvector('english', description || ' ' || "Main food description" || ' ' || "WWEIA Category description")
+			  @@ plainto_tsquery('english', $1)
+		ORDER BY ts_rank(
+			to_tsvector('english', description || ' ' || "Main food description" || ' ' || "WWEIA Category description"),
+			plainto_tsquery('english', $1)
+		) DESC
+		LIMIT 5;
+		`, query)
 
-func FnddsQuery(dbPool *pgxpool.Pool, query string) (*[]models.FnddsFoodItem, error) {
-	// Query db
-	rows, err := dbPool.Query(context.Background(), "fndds_search_query", query)
-	if err != nil {
-		log.Println("Error in executing query.")
-		log.Println(err)
-		return nil, err
-	}
-	defer rows.Close()
-
-	// Build Fndds food item slice
-	food_items := make([]models.FnddsFoodItem, 0)
-	for rows.Next() {
-		var fi models.FnddsFoodItem
-		if err := rows.Scan(&fi.FoodCode, &fi.Description, &fi.Phosphorus, &fi.Potassium); err != nil {
-			return nil, err
+		if err != nil {
+			return nil, fmt.Errorf("query error: %w", err)
 		}
-		food_items = append(food_items, fi)
+
+		var items []models.FnddsFoodItem
+		for rows.Next() {
+			var item models.FnddsFoodItem
+			err := rows.Scan(&item.FoodCode, &item.Description, &item.Potassium, &item.Phosphorus, &item.Calories, &item.Protein, &item.Carbs)
+			if err != nil {
+				return nil, fmt.Errorf("scan error: %w", err)
+			}
+			items = append(items, item)
+		}
+		if len(items) == 0 {
+			fmt.Println("⚠️ No matches found in database for:", ingredientName)
+		}
+		if len(items) > 0 {
+			return &items, nil
+		}
 	}
-	if err := rows.Err(); err != nil {
-		return nil, err
+	return nil, nil
+}
+
+// helper function to rearrange food descriptions in case no match is found
+func permuteWords(input string) []string {
+	words := strings.Fields(input)
+	var results []string
+	n := len(words)
+
+	// Return original if there's 1 or 0 words
+	if n <= 1 {
+		return []string{input}
 	}
-	return &food_items, nil
+
+	// Simple permutations: rotate positions
+	for i := 0; i < n; i++ {
+		rotated := append(words[i:], words[:i]...)
+		results = append(results, strings.Join(rotated, " "))
+	}
+
+	return results
 }

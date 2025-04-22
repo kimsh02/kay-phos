@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/google/uuid"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +19,7 @@ import (
 // 	return repositories.CheckUserNameExists(app.DBPool, username)
 // }
 
-// User handler generator
+// MakeUserHandler User handler generator
 func MakeUserHandler(fn func(*gin.Context, *models.User)) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var user models.User
@@ -36,10 +37,10 @@ func MakeUserHandler(fn func(*gin.Context, *models.User)) gin.HandlerFunc {
 	}
 }
 
-// verify User logging in
-func (app *App) LoginUser(c *gin.Context, user *models.User) {
+// LoginUser verify User logging in
+func (a *App) LoginUser(c *gin.Context, user *models.User) {
 	// Get user from db
-	if err := repositories.GetUser(app.DBPool, user); err != nil {
+	if err := repositories.GetUser(a.DBPool, user); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -55,22 +56,22 @@ func (app *App) LoginUser(c *gin.Context, user *models.User) {
 		return
 	}
 	// Set token as a secure cookie and return success
-	// TODO: change for https, change path, change domain
-	c.SetCookie("token", token, 3600, "/dashboard/", "server", false, true)
-	c.SetCookie("token", token, 3600, "/dashboard/", "localhost", false, true)
+	// update: change for https, change path, change domain
+	c.SetCookie("token", token, 3600, "/", "", false, true)
+
 	// c.Redirect(http.StatusSeeOther, "/dashboard")
 	c.IndentedJSON(http.StatusOK, gin.H{"message": "Login successful."})
 }
 
-// creates new User with hashed password and generated uuid
-func (app *App) CreateUser(c *gin.Context, user *models.User) {
+// CreateUser creates new User with hashed password and generated uuid
+func (a *App) CreateUser(c *gin.Context, user *models.User) {
 	// Check if username already exists in the database, slightly faster
 	// if app.userNameExists(&user.UserName) {
 	// 	c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Username already exists."})
 	// 	return
 	// }
 	// Check if username already exists in the database, more generic and more overhead
-	if err := repositories.GetUser(app.DBPool, user); err == nil {
+	if err := repositories.GetUser(a.DBPool, user); err == nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Username already exists."})
 		return
 	}
@@ -81,7 +82,7 @@ func (app *App) CreateUser(c *gin.Context, user *models.User) {
 	}
 	user.SetUserID()
 	// Insert user into db
-	if err := repositories.CreateUser(app.DBPool, user); err != nil {
+	if err := repositories.CreateUser(a.DBPool, user); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -89,4 +90,30 @@ func (app *App) CreateUser(c *gin.Context, user *models.User) {
 	// c.SetCookie("accountStatus", "created", 5, "/login", "localhost", false, false)
 	// c.Redirect(http.StatusSeeOther, "/login")
 	c.IndentedJSON(http.StatusCreated, gin.H{"message": "User created successfully."})
+}
+
+func (a *App) GetCurrentUserInfo(c *gin.Context) {
+	claimsRaw, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing user context"})
+		return
+	}
+
+	claims, ok := claimsRaw.(*models.Claims)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid token claims"})
+		return
+	}
+
+	user := &models.User{UserID: uuid.MustParse(claims.UserID)}
+
+	// Will fetch FirstName, etc.
+	if err := repositories.GetUser(a.DBPool, user); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"firstName": user.FirstName,
+	})
 }

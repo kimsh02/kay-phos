@@ -1,47 +1,57 @@
 package middleware
 
 import (
-	"net/http"
-
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/kimsh02/kay-phos/server/gin/internal/models"
-	"github.com/kimsh02/kay-phos/server/gin/internal/services"
+	"net/http"
+	"os"
 )
-
-/*
- * User JWT token middleware
- */
 
 func ValidateTokenMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// Attempt to grab the token cookie
 		tokenString, err := c.Cookie("token")
-		// Abort if empty token
 		if err != nil {
-			c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-			// c.SetCookie("accountStatus", "not logged in", 5, "/", "localhost", false, false)
-			// log.Println("Redirect from empty token.")
-			// c.Redirect(http.StatusSeeOther, "/")
+			if gin.Mode() == gin.TestMode {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
+			} else {
+				c.HTML(http.StatusUnauthorized, "unauthorized.html", gin.H{
+					"title":   "Access Denied",
+					"message": "Please login to continue.",
+				})
+			}
 			c.Abort()
 			return
 		}
-		// Verify token
+
+		//Parse and Validate the JWT
 		claims := &models.Claims{}
-		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return services.JwtSecret, nil
+		parsedToken, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			secret := os.Getenv("JWT_SECRET")
+			return []byte(secret), nil
 		})
 
-		if err != nil || !token.Valid {
-			c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token."})
-			// c.SetCookie("accountStatus", "session expired", 5, "/", "localhost", false, false)
-			// log.Println("Redirect from empty invalid token.")
-			// c.Redirect(http.StatusSeeOther, "/")
+		if err != nil || !parsedToken.Valid {
+			fmt.Println("Error in validating token.")
+			if gin.Mode() == gin.TestMode {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
+			} else {
+				c.HTML(http.StatusUnauthorized, "unauthorized.html", gin.H{
+					"title":   "Access Denied",
+					"message": "Your session is invalid or has expired. Please login again.",
+				})
+			}
 			c.Abort()
 			return
 		}
 
-		// Pass claims to the next handler
-		c.Set("userid", claims.UserID)
+		// ✅ Passed all checks
+		c.Set("claims", claims)
 		c.Next()
 	}
 }

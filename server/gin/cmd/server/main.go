@@ -17,6 +17,7 @@ import (
 
 func main() {
 	// Initialize db connection pool
+
 	dbPool, err := repositories.NewDBConnectionPool()
 	if err != nil {
 		log.Println(err)
@@ -35,6 +36,7 @@ func main() {
 	// Initialize router
 	r := router.NewRouter()
 	// Initialize static server
+	r.LoadHTMLGlob("public/html/*.html")
 	router.InitStatic(r)
 	// Initialize APIs
 	router.InitRoutes(r, app)
