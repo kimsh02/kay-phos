@@ -9,6 +9,7 @@
 body {
   font-family: Arial, sans-serif;
   background-color: #f4ede5;
+  place-items: center;
 }
 
 body, html {
@@ -145,8 +146,4 @@ p {
   font-weight: bold;
   color: #8B0015;
   font-size: 25px;
-}
-
-body{
-  place-items: center;
 }

@@ -57,7 +57,7 @@ function login(event) {
                 console.log("Error Response JSON:", jqXHR.responseJSON);
                 //checking error
                 if (jqXHR.responseJSON.error === "User not found") {
-                    errorMsg = "Wrong username";
+                    var errorMsg = "Wrong username";
                 } else if (jqXHR.responseJSON.error === "Incorrect password") {
                     errorMsg = "Wrong password";
                 } else {
@@ -72,6 +72,7 @@ function login(event) {
             $('#rxData').text(errorMsg).css("color", "red");
         });
 }
+
 
 $(function () {
     console.log("running here too!");
@@ -94,3 +95,7 @@ $(function () {
         }, 500);
     });
 });
+// Export for testing
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+    module.exports = login;
+}

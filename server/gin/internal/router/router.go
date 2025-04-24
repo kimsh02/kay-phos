@@ -12,9 +12,13 @@ func NewRouter() *gin.Engine {
 	// Set the router as the default one shipped with Gin
 	router := gin.Default()
 	expectedHosts := map[string]struct{}{
-		"localhost:8080":     {},
-		"server:8080":        {},
-		"3.149.231.239:8080": {},
+		"localhost:8080":      {},
+		"server:8080":         {},
+		"3.149.231.239:8080":  {},
+		"kayphos.com":         {},
+		"www.kayphos.com":     {},
+		"kayphos.com:443":     {},
+		"www.kayphos.com:443": {}, // just in case
 	}
 
 	// Setup Security Headers

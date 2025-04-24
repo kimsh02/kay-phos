@@ -2,4 +2,8 @@
 module.exports = {
     testEnvironment: "jsdom",
     setupFiles: ["jest-fetch-mock"],
+    "jest": {
+        "testEnvironment": "jsdom"
+    }
 };
+

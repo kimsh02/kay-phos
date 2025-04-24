@@ -212,13 +212,6 @@ header {
   background-color: rgba(76, 175, 80, 0.1);
 }
 
-* {
-  padding: 0;
-  margin: 0;
-  box-sizing: border-box;
-}
-
-
 button {
   padding: 10px;
   width: 70px;

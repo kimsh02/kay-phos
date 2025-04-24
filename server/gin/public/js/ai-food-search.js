@@ -17,68 +17,26 @@ const inputDiv = document.querySelector(".input-div"),
 calculateButton.textContent = "Calculate Nutrient Intake";
 calculateButton.classList.add("calculate-intake");
 calculateButton.style.display = "none"; // Hide until needed
-calculateButton.addEventListener("click", sendSelectedFoodsToDB);
+calculateButton.addEventListener("click", () => {
+    sendSelectedFoodsToDB().catch(console.error);
+});
 
 
 // Create "Save Meal to History" button
 saveMealButton.textContent = "Save to Favorites";
 saveMealButton.classList.add("save-meal");
 saveMealButton.style.display = "none"; // Hide until needed
-saveMealButton.addEventListener("click", saveMealToHistory); // Attach event listener
+saveMealButton.addEventListener("click", () => {
+    saveMealToHistory().catch(console.error);
+}); // Attach event listener
 
 // Creat "Log Meal" button
 const logMealButton = document.createElement("button");
 logMealButton.textContent = "Log This Meal";
 logMealButton.classList.add("log-meal");
 logMealButton.style.display = "none"; // Initially hidden
-logMealButton.addEventListener("click", async () => {
-    if (selectedFoods.length === 0) {
-        displayServerMessage("Please select at least one food item to log.", "error");
-        return;
-    }
-
-    const mealName = prompt("Enter a name for this meal:") || `AI Meal - ${new Date().toISOString().split("T")[0]}`;
-
-    const ingredients = selectedFoods.map(item => ({
-        name: item.ingredientName,
-        foodCode: 0,
-        grams: item.weightGrams || 0,
-        calories: item.calories || 0,
-        protein: item.protein || 0,
-        phosphorus: item.phosphorus || 0,
-        potassium: item.potassium || 0,
-        carbs: item.carbs || 0
-    }));
-
-    const payload = {
-        mealName,
-        time: new Date().toISOString(),
-        mealType: "history", // ✅ key difference
-        ingredients
-    };
-
-    try {
-        const res = await fetch("/dashboard/api/user-meal-history", {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-
-        const result = await res.text();
-        if (!res.ok) {
-            console.error("❌ Failed to log meal:", result);
-            throw new Error(result);
-        }
-
-        displayToast("✅ Meal logged to history!", "success");
-        setTimeout(() => {
-            window.location.href = "/dashboard/user-meal-history";
-        }, 1500);
-    } catch (err) {
-        console.error("❌ Error logging meal:", err);
-        displayServerMessage("Something went wrong logging the meal.", "error");
-    }
+logMealButton.addEventListener("click",  () => {
+    LogMeal().catch(console.error);
 });
 
 
@@ -421,7 +379,55 @@ async function saveMealToHistory() {
     }
 }
 
+async function LogMeal(){
+    if (selectedFoods.length === 0) {
+        displayServerMessage("Please select at least one food item to log.", "error");
+        return;
+    }
 
+    const mealName = prompt("Enter a name for this meal:") || `AI Meal - ${new Date().toISOString().split("T")[0]}`;
+
+    const ingredients = selectedFoods.map(item => ({
+        name: item.ingredientName,
+        foodCode: 0,
+        grams: item.weightGrams || 0,
+        calories: item.calories || 0,
+        protein: item.protein || 0,
+        phosphorus: item.phosphorus || 0,
+        potassium: item.potassium || 0,
+        carbs: item.carbs || 0
+    }));
+
+    const payload = {
+        mealName,
+        time: new Date().toISOString(),
+        mealType: "history", // ✅ key difference
+        ingredients
+    };
+
+    try {
+        const res = await fetch("/dashboard/api/user-meal-history", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await res.text();
+        if (!res.ok) {
+            console.error("❌ Failed to log meal:", result);
+            throw new Error(result);
+        }
+
+        displayToast("✅ Meal logged to history!", "success");
+        setTimeout(() => {
+            window.location.href = "/dashboard/user-meal-history";
+        }, 1500);
+    } catch (err) {
+        console.error("❌ Error logging meal:", err);
+        displayServerMessage("Something went wrong logging the meal.", "error");
+    }
+}
 
 
 async function sendSelectedFoodsToDB() {

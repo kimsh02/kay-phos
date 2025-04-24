@@ -3,11 +3,13 @@ let allResults = []; // Store all fetched results so we can sort/filter without 
 document.addEventListener("DOMContentLoaded", function () {
   renderRecentSearches();
 
-  document.getElementById("searchButton").addEventListener("click", handleSearch);
+  document.getElementById("searchButton").addEventListener("click", () => {
+    handleSearch().catch(console.error);
+  });
   document.getElementById("sortSelect").addEventListener("change", applyFilters);
   });
 
-document.getElementById("queryInput").addEventListener("input", async function () {
+document.getElementById("queryInput").addEventListener("input",  function () {
   const query = this.value.trim();
   const list = document.getElementById("autocompleteList");
   if (query.length < 2) {
@@ -21,16 +23,17 @@ document.getElementById("queryInput").addEventListener("input", async function (
     }
   });
 
-
-  try {
-    const res = await fetch(`/dashboard/autocomplete?q=${encodeURIComponent(query)}`, {
-      credentials: "include"
-    });
-    const data = await res.json();
-    renderSuggestions(data.suggestions);
-  } catch (err) {
-    console.error("Autocomplete fetch error", err);
-  }
+  (async () => {
+    try {
+      const res = await fetch(`/dashboard/autocomplete?q=${encodeURIComponent(query)}`, {
+        credentials: "include"
+      });
+      const data = await res.json();
+      renderSuggestions(data.suggestions);
+    } catch (err) {
+      console.error("Autocomplete fetch error", err);
+    }
+  })();
 });
 
 function renderSuggestions(suggestions) {
@@ -159,7 +162,7 @@ function renderResults(results) {
   });
 }
 
-document.addEventListener("click", async function (e) {
+document.addEventListener("click",  function (e) {
   if (e.target.classList.contains("log-meal")) {
     const foodItem = JSON.parse(e.target.dataset.food);
 
@@ -178,36 +181,40 @@ document.addEventListener("click", async function (e) {
       }]
     };
 
-    try {
-      const res = await fetch("/dashboard/api/user-meal-history", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+    (async () => {
+      try {
+        const res = await fetch("/dashboard/api/user-meal-history", {
+          method: "POST",
+          credentials: "include",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(payload)
+        });
 
-      if (!res.ok) {
-        const msg = await res.text();
-        console.error("❌ Log failed:", msg);
-        alert("Failed to log meal.");
-        return;
+        if (!res.ok) {
+          const msg = await res.text();
+          console.error("❌ Log failed:", msg);
+          alert("Failed to log meal.");
+          return;
+        }
+
+        // ✅ Redirect to user meal history
+        window.location.href = "/dashboard/user-meal-history";
+
+      } catch (err) {
+        console.error("❌ Log error:", err);
+        alert("Unexpected error during meal log.");
       }
-
-      // ✅ Redirect to user meal history
-      window.location.href = "/dashboard/user-meal-history";
-
-    } catch (err) {
-      console.error("❌ Log error:", err);
-      alert("Unexpected error during meal log.");
-    }
+    })();
   }
 });
 
 // Event delegation to handle all "Add to Meal" buttons
-document.addEventListener("click", async function (e) {
+document.addEventListener("click",  function (e) {
   if (e.target.classList.contains("add-to-meal")) {
     const foodItem = JSON.parse(e.target.dataset.food);
-    await addToMealHistory(foodItem);
+    (async () => {
+      await addToMealHistory(foodItem);
+    })();
   }
 });
 

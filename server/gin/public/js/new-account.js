@@ -1,4 +1,4 @@
-document.getElementById('new-account-form').addEventListener('submit', async function(event) {
+document.getElementById('new-account-form').addEventListener('submit',  function(event) {
     event.preventDefault();
     
     const firstName = document.getElementById('first-name').value.trim();
@@ -25,33 +25,35 @@ document.getElementById('new-account-form').addEventListener('submit', async fun
         return;
     }
 
-    try {
-        const response = await fetch('/new-account', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                firstname: firstName,
-                lastname: lastName,
-                username: username,
-                inputpassword: password
-            })
-        });
+    (async () => {
+        try {
+            const response = await fetch('/new-account', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    firstname: firstName,
+                    lastname: lastName,
+                    username: username,
+                    inputpassword: password
+                })
+            });
 
-        const result = await response.json();
-        
-        if (response.status === 400) {
-            if (result.error === 'Username already exists') {
-                errorMessage.textContent = 'This username is already taken. Please choose another.';
+            const result = await response.json();
+
+            if (response.status === 400) {
+                if (result.error === 'Username already exists') {
+                    errorMessage.textContent = 'This username is already taken. Please choose another.';
+                } else {
+                    errorMessage.textContent = result.error;
+                }
+            } else if (response.status === 500) {
+                errorMessage.textContent = 'Server error. Please try again later.';
             } else {
-                errorMessage.textContent = result.error;
+                alert(result.message);
+                window.location.href = '/';
             }
-        } else if (response.status === 500) {
-            errorMessage.textContent = 'Server error. Please try again later.';
-        } else {
-            alert(result.message);
-            window.location.href = '/';
+        } catch (error) {
+            errorMessage.textContent = 'Network error. Please check your connection and try again.';
         }
-    } catch (error) {
-        errorMessage.textContent = 'Network error. Please check your connection and try again.';
-    }
+    })()
 });
