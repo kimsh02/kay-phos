@@ -32,7 +32,10 @@ func main() {
 	// }
 
 	// Init handler struct
-	app := &handlers.App{DBPool: dbPool}
+	app := &handlers.App{
+		DB:        dbPool,
+		FnddsRepo: &repositories.Fndds{},
+	}
 	// Initialize router
 	r := router.NewRouter()
 	// Initialize static server

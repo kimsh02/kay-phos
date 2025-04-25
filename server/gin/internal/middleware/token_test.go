@@ -15,22 +15,20 @@
 // ❌ Full login/signup flow (separate test)
 // ❌ Cookie logic outside Gin (handled internally)
 
-package backend
+package middleware
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+	"github.com/kimsh02/kay-phos/server/gin/internal/models"
+	"github.com/kimsh02/kay-phos/server/gin/internal/services"
+	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 	"time"
-
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"github.com/kimsh02/kay-phos/server/gin/internal/middleware"
-	"github.com/kimsh02/kay-phos/server/gin/internal/models"
-	"github.com/kimsh02/kay-phos/server/gin/internal/services"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestGenerateToken(t *testing.T) {
@@ -61,7 +59,7 @@ func TestValidateTokenMiddleware_Success(t *testing.T) {
 	// Setup Gin
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.Use(middleware.ValidateTokenMiddleware())
+	r.Use(ValidateTokenMiddleware())
 	r.GET("/test", func(c *gin.Context) {
 		c.Status(http.StatusOK)
 	})
@@ -82,7 +80,7 @@ func TestValidateTokenMiddleware_MissingToken(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.Use(middleware.ValidateTokenMiddleware())
+	r.Use(ValidateTokenMiddleware())
 	r.GET("/test", func(c *gin.Context) {
 		c.Status(http.StatusOK)
 	})
@@ -102,7 +100,7 @@ func TestValidateTokenMiddleware_InvalidToken(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.Use(middleware.ValidateTokenMiddleware())
+	r.Use(ValidateTokenMiddleware())
 	r.GET("/test", func(c *gin.Context) {
 		c.Status(http.StatusOK)
 	})
@@ -134,7 +132,7 @@ func TestValidateTokenMiddleware_ExpiredToken(t *testing.T) {
 	// Setup Gin
 	gin.SetMode(gin.TestMode)
 	r := gin.New()
-	r.Use(middleware.ValidateTokenMiddleware())
+	r.Use(ValidateTokenMiddleware())
 	r.GET("/test", func(c *gin.Context) {
 		c.Status(http.StatusOK)
 	})

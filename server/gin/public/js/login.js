@@ -1,6 +1,3 @@
-//debug console message
-console.log("login.js is running!");
-
 function login(event) {
     // Prevent form submission
     if (event) event.preventDefault();
@@ -73,29 +70,24 @@ function login(event) {
         });
 }
 
-
 $(function () {
     console.log("running here too!");
     $('#username, #password').on('input', function () {
         $('#error-message').text("");  // Clear the error message
     });
-    //submit button redirects to login function
-    $('#submit').click(function (event) {
 
+    $('#submit').click(function (event) {
         event.preventDefault();
         console.log("submit running!");
         login(event);
     });
-    //button redirects to new-accoung.html
+
     $('#button').click(function () {
         console.log("button running!");
-        //add 500ms delay to change of page
         setTimeout(() => {
             window.location.href = "/new-account";
         }, 500);
     });
 });
 // Export for testing
-if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
-    module.exports = login;
-}
+module.exports = login;

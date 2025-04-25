@@ -3,14 +3,13 @@ package repositories
 import (
 	"context"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kimsh02/kay-phos/server/gin/internal/models"
 	"log"
 	"time"
 )
 
 // InsertMeal inserts a single meal record for a user into the meals table
-func InsertMeal(dbPool *pgxpool.Pool, userID uuid.UUID, foodCode int, mealTime time.Time) error {
+func InsertMeal(dbPool DBClient, userID uuid.UUID, foodCode int, mealTime time.Time) error {
 	_, err := dbPool.Exec(context.Background(),
 		`INSERT INTO meals (user_id, food_code, time) VALUES ($1, $2, $3);`,
 		userID, foodCode, mealTime)
@@ -19,9 +18,9 @@ func InsertMeal(dbPool *pgxpool.Pool, userID uuid.UUID, foodCode int, mealTime t
 }
 
 // GetMealsByUserID fetches all meals for a given user ID
-func GetMealsByUserID(dbPool *pgxpool.Pool, userID uuid.UUID, mealType string) ([]models.MealEntry, error) {
+func GetMealsByUserID(dbPool DBClient, userID uuid.UUID, mealType string) ([]models.MealGroup, error) {
 	query := `
-	SELECT meal_name, time, ingredients, totals
+	SELECT meal_name, time, ingredients
 	FROM meals
 	WHERE user_id = $1 AND meal_type = $2
 	ORDER BY time DESC;
@@ -33,35 +32,21 @@ func GetMealsByUserID(dbPool *pgxpool.Pool, userID uuid.UUID, mealType string) (
 	}
 	defer rows.Close()
 
-	var meals []models.MealEntry
+	var meals []models.MealGroup
 	for rows.Next() {
-		var m models.MealEntry
-		var ingredients []models.Ingredient
-		var totals map[string]float64
-
-		if err := rows.Scan(&m.MealName, &m.Time, &ingredients, &totals); err != nil {
+		var m models.MealGroup
+		if err := rows.Scan(&m.MealName, &m.Time, &m.Ingredients); err != nil {
 			return nil, err
 		}
-
-		// Optional: convert totals into fields
-		m.Calories = totals["calories"]
-		m.Protein = totals["protein"]
-		m.Carbs = totals["carbs"]
-		m.Phosphorus = totals["phosphorus"]
-		m.Potassium = totals["potassium"]
-
-		// Attach first ingredient’s name as preview
-		if len(ingredients) > 0 {
-			m.Name = ingredients[0].Name
-			m.Grams = ingredients[0].Grams
-		}
+		// MealType is constant for all rows, fill it
+		m.MealType = mealType
 
 		meals = append(meals, m)
 	}
 	return meals, nil
 }
 
-func InsertCustomMeal(dbPool *pgxpool.Pool, userID uuid.UUID, mealName string, mealTime time.Time, ingredients []models.Ingredient) error {
+func InsertCustomMeal(dbPool DBClient, userID uuid.UUID, mealName string, mealTime time.Time, ingredients []models.Ingredient) error {
 	// Calculate totals from ingredients
 	var totalK, totalP, totalCals, totalPro, totalCarbs float64
 	for _, ing := range ingredients {
@@ -95,7 +80,7 @@ type DailyNutrientTotals struct {
 	Phosphorous float64   `json:"phosphorousTotal"`
 }
 
-func FetchNutrientHistory(db *pgxpool.Pool, userID uuid.UUID, start, end string) ([]DailyNutrientTotals, error) {
+func FetchNutrientHistory(db DBClient, userID uuid.UUID, start, end string) ([]DailyNutrientTotals, error) {
 	query := `
 		SELECT 
 			DATE(time) AS date,
@@ -124,7 +109,7 @@ func FetchNutrientHistory(db *pgxpool.Pool, userID uuid.UUID, start, end string)
 	return results, nil
 }
 
-func InsertLoggedMeal(dbPool *pgxpool.Pool, userID uuid.UUID, mealName string, mealTime time.Time, ingredients []models.Ingredient) error {
+func InsertLoggedMeal(dbPool DBClient, userID uuid.UUID, mealName string, mealTime time.Time, ingredients []models.Ingredient) error {
 	// Calculate totals
 	var totalK, totalP, totalCals, totalPro, totalCarbs float64
 	for _, ing := range ingredients {
@@ -151,7 +136,7 @@ func InsertLoggedMeal(dbPool *pgxpool.Pool, userID uuid.UUID, mealName string, m
 	return err
 }
 
-func DeleteMealByName(dbPool *pgxpool.Pool, userID uuid.UUID, mealName string) error {
+func DeleteMealByName(dbPool DBClient, userID uuid.UUID, mealName string) error {
 	cmdTag, err := dbPool.Exec(context.Background(),
 		`DELETE FROM meals WHERE user_id = $1 AND meal_name = $2;`,
 		userID, mealName)

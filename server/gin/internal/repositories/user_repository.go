@@ -7,7 +7,6 @@ import (
 	"log"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kimsh02/kay-phos/server/gin/internal/models"
 )
 
@@ -27,7 +26,7 @@ import (
 // }
 
 // Get user
-func GetUser(dbPool *pgxpool.Pool, user *models.User) error {
+func GetUser(dbPool DBClient, user *models.User) error {
 	// Get user by appropriate value
 	var byValue interface{}
 	var query string
@@ -50,7 +49,7 @@ func GetUser(dbPool *pgxpool.Pool, user *models.User) error {
 }
 
 // create user in users table
-func CreateUser(dbPool *pgxpool.Pool, user *models.User) error {
+func CreateUser(dbPool DBClient, user *models.User) error {
 	// Insert user into db
 	_, err := dbPool.Exec(context.Background(), "user_insert_query", user.FirstName, user.LastName, user.UserName, user.UserID, user.HashedPassword)
 	if err != nil {

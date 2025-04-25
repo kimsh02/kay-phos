@@ -1,3 +1,9 @@
+if (typeof window !== "undefined") {
+  selectedFoods = window.selectedFoods || [];
+  analysisResults = window.analysisResults || [];
+  window.selectedFoods = selectedFoods;
+  window.analysisResults = analysisResults;
+}
 let allResults = []; // Store all fetched results so we can sort/filter without re-fetching
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -218,7 +224,7 @@ document.addEventListener("click",  function (e) {
   }
 });
 
-// api call function to backend
+// api call function to testutils
 async function fetchNutrientData(query) {
   const gramsInput = document.getElementById("gramsInput");
   const grams = parseFloat(gramsInput.value) || 100;
@@ -292,7 +298,7 @@ async function addToMealHistory(item) {
       carbs: item.carbs
     }]
   };
-  console.log("📤 Sending payload to backend:", JSON.stringify(payload, null, 2));
+  console.log("📤 Sending payload to testutils:", JSON.stringify(payload, null, 2));
 
 
   try {
@@ -332,6 +338,12 @@ function updateTotals(ingredients) {
   localStorage.setItem("totalPotassium", newK);
   localStorage.setItem("totalPhosphorus", newP);
   localStorage.setItem("mealUpdated", "true");
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    updateTotals
+  };
 }
 
 

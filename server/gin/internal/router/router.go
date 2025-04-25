@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/kimsh02/kay-phos/server/gin/internal/router/internal/middleware"
+	"github.com/kimsh02/kay-phos/server/gin/internal/middleware"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

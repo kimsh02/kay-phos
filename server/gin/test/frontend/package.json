@@ -6,7 +6,9 @@
   "type": "commonjs",
   "scripts": {
     "test": "jest",
-    "test:login": "jest tests/login.test.js"
+    "test:login": "jest tests/login.test.js",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watchAll"
   },
   "repository": {
     "type": "git",

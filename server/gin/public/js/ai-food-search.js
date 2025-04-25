@@ -1,8 +1,13 @@
-
 // Global variables
 let uploadedImage = null; // Store only one image
 let analysisResults = []; // Store food analysis results
 let selectedFoods = []; // Store selected foods
+if (typeof window !== "undefined") {
+    // Rebind the module-scoped arrays to the test globals
+    if (window.selectedFoods) selectedFoods = window.selectedFoods;
+    if (window.analysisResults) analysisResults = window.analysisResults;
+}
+
 const inputDiv = document.querySelector(".input-div"),
     input = document.querySelector(".file"),
     serverMessage = document.querySelector(".server-message"),
@@ -379,7 +384,7 @@ async function saveMealToHistory() {
     }
 }
 
-async function LogMeal(){
+async function LogMeal() {
     if (selectedFoods.length === 0) {
         displayServerMessage("Please select at least one food item to log.", "error");
         return;
@@ -387,21 +392,33 @@ async function LogMeal(){
 
     const mealName = prompt("Enter a name for this meal:") || `AI Meal - ${new Date().toISOString().split("T")[0]}`;
 
+    // ✅ Prompt for grams eaten
+    const portionInput = prompt("How many grams of this meal did you eat?");
+    const portionGrams = parseFloat(portionInput);
+    if (isNaN(portionGrams) || portionGrams <= 0) {
+        displayServerMessage("❌ Invalid portion size. Please enter a number.", "error");
+        return;
+    }
+
+    // ✅ Total original grams
+    const totalGrams = selectedFoods.reduce((sum, item) => sum + (item.weightGrams || 0), 0);
+    const scaleFactor = portionGrams / totalGrams;
+
     const ingredients = selectedFoods.map(item => ({
         name: item.ingredientName,
         foodCode: 0,
-        grams: item.weightGrams || 0,
-        calories: item.calories || 0,
-        protein: item.protein || 0,
-        phosphorus: item.phosphorus || 0,
-        potassium: item.potassium || 0,
-        carbs: item.carbs || 0
+        grams: Math.round((item.weightGrams || 0) * scaleFactor),
+        calories: Math.round((item.calories || 0) * scaleFactor),
+        protein: Math.round((item.protein || 0) * scaleFactor),
+        phosphorus: Math.round((item.phosphorus || 0) * scaleFactor),
+        potassium: Math.round((item.potassium || 0) * scaleFactor),
+        carbs: Math.round((item.carbs || 0) * scaleFactor)
     }));
 
     const payload = {
         mealName,
         time: new Date().toISOString(),
-        mealType: "history", // ✅ key difference
+        mealType: "history",
         ingredients
     };
 
@@ -430,13 +447,18 @@ async function LogMeal(){
 }
 
 
+
 async function sendSelectedFoodsToDB() {
+    console.log("📦 Sending to /dashboard/calculate-intake:", selectedFoods);
+
     if (selectedFoods.length === 0) {
         displayServerMessage("Please select at least one food item.", "error");
         return;
     }
 
+
     try {
+
         const response = await fetch('/dashboard/calculate-intake', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -449,7 +471,14 @@ async function sendSelectedFoodsToDB() {
 
 
 
-        const data = await response.json();
+        const text = await response.text();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            console.error("❌ Failed to parse JSON:", text);
+            throw e;
+        }
 
         // Merge nutrients into selectedFoods
         selectedFoods.forEach(sel => {
@@ -487,13 +516,11 @@ async function sendSelectedFoodsToDB() {
 
         resultsDiv.innerHTML = html;
         displayServerMessage("Calculated intake successfully!", "success");
-
     } catch (error) {
         console.error("❌ Error sending to database:", error);
         displayServerMessage("Database request failed.", "error");
     }
 }
-
 
 // Display messages
 function displayServerMessage(message, type) {
@@ -516,45 +543,7 @@ function displayToast(message, type = "info") {
     }, 2500);
 }
 
-function addLogButtonToCard(card, ingredients) {
-    const logMealBtn = document.createElement("button");
-    logMealBtn.textContent = "Log This Meal";
-    logMealBtn.classList.add("save-meal");
 
-    logMealBtn.addEventListener("click", () => {
-        const mealName = prompt("Enter meal name:") || `AI Meal - ${new Date().toISOString().split("T")[0]}`;
-        const ingredients = selectedFoods.map(item => ({
-            name: item.ingredientName,
-            foodCode: 0,
-            grams: item.weightGrams || 0,
-            calories: item.calories || 0,
-            protein: item.protein || 0,
-            phosphorus: item.phosphorus || 0,
-            potassium: item.potassium || 0,
-            carbs: item.carbs || 0
-        }));
-
-        const payload = {
-            mealName,
-            time: new Date().toISOString(),
-            mealType: "history",
-            ingredients
-        };
-
-        fetch("/dashboard/api/user-meal-history", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify(payload)
-        })
-            .then(res => res.json())
-            .then(() => {
-                displayToast("Meal logged to history!", "success");
-                window.location.href = "/dashboard/user-meal-history";
-            })
-            .catch(() => displayToast("Failed to log meal.", "error"));
-    });
-}
 function updateTotals(ingredients) {
     let totalPotassium = 0, totalPhosphorus = 0;
     ingredients.forEach(i => {
@@ -568,6 +557,30 @@ function updateTotals(ingredients) {
     localStorage.setItem("totalPotassium", newK);
     localStorage.setItem("totalPhosphorus", newP);
     localStorage.setItem("mealUpdated", "true");
+}
+
+if (typeof window !== "undefined") {
+    // Rebind the module's scoped arrays to the test's version
+    selectedFoods = window.selectedFoods || [];
+    analysisResults = window.analysisResults || [];
+
+    // Then expose everything for testing
+    window.selectedFoods = selectedFoods;
+    window.analysisResults = analysisResults;
+    window.displayAnalysisResults = displayAnalysisResults;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+        LogMeal,
+        displayAnalysisResults, // optional, for other tests
+        saveMealToHistory,      // optional
+        sendSelectedFoodsToDB,   // optional
+        displayServerMessage,
+        displayToast,
+        toggleSelection,
+        updateTotals
+    };
 }
 
 

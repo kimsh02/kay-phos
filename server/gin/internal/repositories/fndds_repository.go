@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kimsh02/kay-phos/server/gin/internal/models"
 )
 
+type Fndds struct{}
+
 // FnddsQuery performs an websearch_to_tsquery for looser match on description
-func FnddsQuery(db *pgxpool.Pool, ingredientName string) (*[]models.FnddsFoodItem, error) {
+func (f Fndds) FnddsQuery(db DBClient, ingredientName string) (*[]models.FnddsFoodItem, error) {
 	queries := permuteWords(ingredientName)
 	for _, query := range queries {
 		rows, err := db.Query(context.Background(), `

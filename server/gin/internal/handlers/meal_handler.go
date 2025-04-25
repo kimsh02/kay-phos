@@ -37,7 +37,7 @@ func (app *App) InsertMealHistory(c *gin.Context) {
 
 		switch grouped.MealType {
 		case "favorite":
-			if err := repositories.InsertCustomMeal(app.DBPool, userID, grouped.MealName, grouped.Time, grouped.Ingredients); err != nil {
+			if err := repositories.InsertCustomMeal(app.DB, userID, grouped.MealName, grouped.Time, grouped.Ingredients); err != nil {
 				log.Printf("❌ InsertCustomMeal failed: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save favorite meal"})
 				return
@@ -46,7 +46,7 @@ func (app *App) InsertMealHistory(c *gin.Context) {
 			return
 
 		case "history":
-			if err := repositories.InsertLoggedMeal(app.DBPool, userID, grouped.MealName, grouped.Time, grouped.Ingredients); err != nil {
+			if err := repositories.InsertLoggedMeal(app.DB, userID, grouped.MealName, grouped.Time, grouped.Ingredients); err != nil {
 				log.Printf("❌ InsertLoggedMeal failed: %v", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to log meal"})
 				return
@@ -70,7 +70,7 @@ func (app *App) InsertMealHistory(c *gin.Context) {
 	}
 	if err := c.ShouldBindJSON(&legacy); err == nil && len(legacy.Entries) > 0 {
 		for _, entry := range legacy.Entries {
-			if err := repositories.InsertMeal(app.DBPool, userID, entry.FoodCode, entry.Time); err != nil {
+			if err := repositories.InsertMeal(app.DB, userID, entry.FoodCode, entry.Time); err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert legacy meal entry"})
 				return
 			}
@@ -94,7 +94,7 @@ func (a *App) GetFoodCode(c *gin.Context) {
 		return
 	}
 
-	results, err := repositories.FnddsQuery(a.DBPool, name)
+	results, err := a.FnddsRepo.FnddsQuery(a.DB, name)
 	if err != nil || results == nil || len(*results) == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Food not found"})
 		return
@@ -133,7 +133,7 @@ func (a *App) GetMealHistory(c *gin.Context) {
 		return
 	}
 
-	meals, err := repositories.GetMealsByUserID(a.DBPool, userID, "favorite")
+	meals, err := repositories.GetMealsByUserID(a.DB, userID, "favorite")
 	if err != nil {
 		log.Println("❌ Failed to fetch meals from DB:", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch meals"})
@@ -152,7 +152,7 @@ func (a *App) GetLoggedMeals(c *gin.Context) {
 		return
 	}
 
-	meals, err := repositories.GetMealsByUserID(a.DBPool, userID, "history")
+	meals, err := repositories.GetMealsByUserID(a.DB, userID, "history")
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch logged meals"})
 		return
@@ -181,7 +181,7 @@ func (app *App) DeleteMealEntry(c *gin.Context) {
 
 	log.Printf("🧹 Deleting meal for user %s: mealName=%s\n", userID, req.MealName)
 
-	err = repositories.DeleteMealByName(app.DBPool, userID, req.MealName)
+	err = repositories.DeleteMealByName(app.DB, userID, req.MealName)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete meal"})
 		return
@@ -206,7 +206,7 @@ func (a *App) GetNutrientHistory(c *gin.Context) {
 		return
 	}
 
-	data, err := repositories.FetchNutrientHistory(a.DBPool, userID, start, end)
+	data, err := repositories.FetchNutrientHistory(a.DB, userID, start, end)
 	if err != nil {
 		log.Printf("❌ Failed to fetch nutrient history: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch nutrient history"})

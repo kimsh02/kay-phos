@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kimsh02/kay-phos/server/gin/internal/repositories"
 )
 
 // CalculateIntake Handler for POST /dashboard/calculate-intake
@@ -29,13 +28,22 @@ func (a *App) CalculateIntake(c *gin.Context) {
 	var breakdown []gin.H
 
 	for _, food := range req.SelectedFoods {
-		items, err := repositories.FnddsQuery(a.DBPool, food.IngredientName)
-		if (err != nil || items == nil || len(*items) == 0) && len(food.IngredientName) > 5 {
-			trimmedName := strings.Join(strings.Fields(food.IngredientName)[:1], " ") // fallback to first word e.g., "lemon"
-			items, err = repositories.FnddsQuery(a.DBPool, trimmedName)
+		if strings.TrimSpace(food.IngredientName) == "" || food.WeightGrams <= 0 {
+			continue
 		}
+
+		items, err := a.FnddsRepo.FnddsQuery(a.DB, food.IngredientName)
 		if err != nil || items == nil || len(*items) == 0 {
-			continue // still skip if nothing
+			// fallback: try first word (e.g., "lemon" from "lemon juice")
+			words := strings.Fields(food.IngredientName)
+			if len(words) > 0 {
+				items, err = a.FnddsRepo.FnddsQuery(a.DB, words[0])
+			}
+		}
+
+		if err != nil || items == nil || len(*items) == 0 {
+			// skip bad food
+			continue
 		}
 
 		best := (*items)[0]
@@ -82,7 +90,7 @@ func (a *App) SearchFood(c *gin.Context) {
 		return
 	}
 
-	results, err := repositories.FnddsQuery(a.DBPool, query)
+	results, err := a.FnddsRepo.FnddsQuery(a.DB, query)
 	if err != nil || results == nil || len(*results) == 0 {
 		c.JSON(http.StatusOK, gin.H{"results": []models.FnddsFoodItem{}})
 		return
@@ -100,11 +108,11 @@ func (a *App) AutocompleteSuggestions(c *gin.Context) {
 	}
 
 	// Use a simpler LIKE query here (or ilike for case-insensitivity)
-	rows, err := a.DBPool.Query(context.Background(), `
+	rows, err := a.DB.Query(context.Background(), `
 		SELECT DISTINCT "Main food description" FROM fndds_nutrient_values
 		WHERE "Main food description" ILIKE $1
-		LIMIT 10;
-	`, prefix+"%")
+		LIMIT 10;`, prefix+"%")
+
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "DB error"})
 		return

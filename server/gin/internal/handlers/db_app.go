@@ -1,11 +1,14 @@
 package handlers
 
-import "github.com/jackc/pgx/v5/pgxpool"
+import (
+	"github.com/kimsh02/kay-phos/server/gin/internal/repositories"
+)
 
 /*
  * dependency injection for handlers using dbpool
  */
 
 type App struct {
-	DBPool *pgxpool.Pool
+	DB        repositories.DBClient
+	FnddsRepo repositories.FnddsRepo
 }

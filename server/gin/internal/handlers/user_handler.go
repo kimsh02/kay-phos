@@ -40,7 +40,7 @@ func MakeUserHandler(fn func(*gin.Context, *models.User)) gin.HandlerFunc {
 // LoginUser verify User logging in
 func (a *App) LoginUser(c *gin.Context, user *models.User) {
 	// Get user from db
-	if err := repositories.GetUser(a.DBPool, user); err != nil {
+	if err := repositories.GetUser(a.DB, user); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -71,7 +71,7 @@ func (a *App) CreateUser(c *gin.Context, user *models.User) {
 	// 	return
 	// }
 	// Check if username already exists in the database, more generic and more overhead
-	if err := repositories.GetUser(a.DBPool, user); err == nil {
+	if err := repositories.GetUser(a.DB, user); err == nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": "Username already exists."})
 		return
 	}
@@ -82,7 +82,7 @@ func (a *App) CreateUser(c *gin.Context, user *models.User) {
 	}
 	user.SetUserID()
 	// Insert user into db
-	if err := repositories.CreateUser(a.DBPool, user); err != nil {
+	if err := repositories.CreateUser(a.DB, user); err != nil {
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -108,7 +108,7 @@ func (a *App) GetCurrentUserInfo(c *gin.Context) {
 	user := &models.User{UserID: uuid.MustParse(claims.UserID)}
 
 	// Will fetch FirstName, etc.
-	if err := repositories.GetUser(a.DBPool, user); err != nil {
+	if err := repositories.GetUser(a.DB, user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "User not found"})
 		return
 	}

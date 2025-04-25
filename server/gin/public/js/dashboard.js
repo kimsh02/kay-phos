@@ -28,7 +28,6 @@ async function initializeTotals() {
       credentials: "include"
     });
 
-    if (!response.ok) throw new Error("Failed to fetch nutrient totals");
 
     const data = await response.json();
     if (Array.isArray(data) && data.length > 0) {
@@ -117,7 +116,11 @@ document.addEventListener("DOMContentLoaded", () => {
   preload.src = `/public/images/${img}`;
 });
 
-// 🚀 Load backend data into pie charts on page load
+// 🚀 Load testutils data into pie charts on page load
 initializeTotals();
 loadWelcomeName();
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { loadWelcomeName, updatePieCharts, initializeTotals,updateDateTime};
+}
 

@@ -120,24 +120,33 @@ function renderLoggedMeals(meals) {
     return;
   }
 
-  // Group by meal name + timestamp
-  const grouped = {};
-  for (const entry of meals) {
-    const key = `${entry.mealName}||${entry.time}`;
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(entry);
-  }
-
   let html = "";
-  for (const key in grouped) {
-    const [mealName, rawTime] = key.split("||");
-    const mealTime = new Date(rawTime).toLocaleString();
+  for (const meal of meals) {
+    const mealTime = new Date(meal.time).toLocaleString();
+    const ingredients = meal.ingredients || [];
+
+    // If no ingredients array, fallback to flat rendering
+    if (!Array.isArray(ingredients)) {
+      console.warn("⚠️ Skipping malformed meal (no ingredients):", meal);
+      continue;
+    }
+
+    // ✅ Calculate totals
+    const totals = ingredients.reduce((acc, i) => {
+      acc.grams += i.grams || 0;
+      acc.calories += i.calories || 0;
+      acc.protein += i.protein || 0;
+      acc.carbs += i.carbs || 0;
+      acc.phosphorus += i.phosphorus || 0;
+      acc.potassium += i.potassium || 0;
+      return acc;
+    }, { grams: 0, calories: 0, protein: 0, carbs: 0, phosphorus: 0, potassium: 0 });
 
     html += `
       <div class="meal-block">
         <div class="meal-header">
           <div class="meal-meta">
-            <h4>${mealName}</h4>
+            <h4>${meal.mealName}</h4>
             <small>${mealTime}</small>
           </div>
         </div>
@@ -150,19 +159,31 @@ function renderLoggedMeals(meals) {
           <tbody>
     `;
 
-    grouped[key].forEach(item => {
+    for (const ing of ingredients) {
       html += `
         <tr>
-          <td>${item.name}</td>
-          <td>${item.grams}</td>
-          <td>${item.calories}</td>
-          <td>${item.protein}</td>
-          <td>${item.carbs}</td>
-          <td>${item.phosphorus}</td>
-          <td>${item.potassium}</td>
+          <td>${ing.name}</td>
+          <td>${ing.grams}</td>
+          <td>${ing.calories}</td>
+          <td>${ing.protein}</td>
+          <td>${ing.carbs}</td>
+          <td>${ing.phosphorus}</td>
+          <td>${ing.potassium}</td>
         </tr>
       `;
-    });
+    }
+
+    html += `
+      <tr class="nutrient-summary">
+        <td><strong>Total</strong></td>
+        <td>${totals.grams}</td>
+        <td>${totals.calories}</td>
+        <td>${totals.protein}</td>
+        <td>${totals.carbs}</td>
+        <td>${totals.phosphorus}</td>
+        <td>${totals.potassium}</td>
+      </tr>
+    `;
 
     html += `
         </tbody>
@@ -172,3 +193,4 @@ function renderLoggedMeals(meals) {
 
   container.innerHTML = html;
 }
+
