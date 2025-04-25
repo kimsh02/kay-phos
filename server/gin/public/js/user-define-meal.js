@@ -1,14 +1,12 @@
 document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("addIngredient").addEventListener("click", addIngredientRow);
-  document.getElementById("saveMeal").addEventListener("click", () => {
-    saveMeal().catch(console.error)
-  });
+  document.getElementById("saveMeal").addEventListener("click", saveMeal);
 
   const logBtn = document.createElement("button");
   logBtn.textContent = "Save & Log Meal";
   logBtn.classList.add("btn", "btn-success", "log-btn");
 
-  logBtn.addEventListener("click",  () => {
+  logBtn.addEventListener("click", async () => {
     const mealName = document.getElementById("mealName").value || `User Meal - ${new Date().toISOString().split("T")[0]}`;
     const ingredients = getDefinedMealIngredients();
 
@@ -33,44 +31,43 @@ document.addEventListener("DOMContentLoaded", function () {
       ingredients
     };
 
-    (async () => {
-      try {
-        const [favRes, logRes] = await Promise.all([
-          fetch("/dashboard/api/user-meal-history", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify(favoritePayload)
-          }),
-          fetch("/dashboard/api/user-meal-history", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify(historyPayload)
-          })
-        ]);
+    try {
+      const [favRes, logRes] = await Promise.all([
+        fetch("/dashboard/api/user-meal-history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(favoritePayload)
+        }),
+        fetch("/dashboard/api/user-meal-history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(historyPayload)
+        })
+      ]);
 
-        if (!favRes.ok || !logRes.ok) {
-          const errMsg = await (favRes.ok ? logRes.text() : favRes.text());
-          console.error("❌ One or both requests failed:", errMsg);
-          alert("Meal save or log failed.");
-          return;
-        }
-
-        alert("✅ Meal saved to favorites and logged to history!");
-        updateTotals(ingredients);
-
-        window.location.href = "/dashboard/user-meal-history";
-
-      } catch (err) {
-        console.error("❌ Save & Log error:", err);
-        alert("Unexpected error occurred.");
+      if (!favRes.ok || !logRes.ok) {
+        const errMsg = await (favRes.ok ? logRes.text() : favRes.text());
+        console.error("❌ One or both requests failed:", errMsg);
+        alert("Meal save or log failed.");
+        return;
       }
-      document.getElementById("userDefineMealControls").appendChild(logBtn);
-      await loadSavedMeals();
-    })()
+
+      alert("✅ Meal saved to favorites and logged to history!");
+      updateTotals(ingredients);
+
+      window.location.href = "/dashboard/user-meal-history";
+
+    } catch (err) {
+      console.error("❌ Save & Log error:", err);
+      alert("Unexpected error occurred.");
+    }
   });
 
+
+  document.getElementById("userDefineMealControls").appendChild(logBtn);
+  loadSavedMeals();
 });
 
 function addIngredientRow() {
@@ -198,57 +195,59 @@ async function loadSavedMeals() {
       const [mealName, time] = key.split("||");
       const mealTime = new Date(time).toLocaleString();
 
+      html += `
+  <div class="meal-block">
+    <div class="meal-header">
+      <div class="meal-meta">
+        <h4>${mealName} <small>(${mealTime})</small></h4>
+        <button class="log-again-btn" data-name="${mealName}" data-ingredients='${JSON.stringify(grouped[key])}'>
+          Log This Meal Again
+        </button>
+      </div>
+      <button class="delete-meal-btn" data-mealname="${mealName}" data-mealtime="${time}">🗑 Delete</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Ingredient</th><th>Grams</th><th>Calories</th><th>Protein</th><th>Carbs</th><th>Phosphorus</th><th>Potassium</th>
+        </tr>
+      </thead>
+      <tbody>
+`;
+
+      for (const item of grouped[key]) {
         html += `
-      <div class="meal-block">
-        <div class="meal-header">
-          <div class="meal-meta">
-            <h4>${mealName} <small>(${mealTime})</small></h4>
-            <button class="log-again-btn" data-name="${mealName}" data-ingredients='${JSON.stringify(grouped[key])}'>
-              Log This Meal Again
-            </button>
-          </div>
-          <button class="delete-meal-btn" data-mealname="${mealName}" data-mealtime="${time}">🗑 Delete</button>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>Ingredient</th><th>Grams</th><th>Calories</th><th>Protein</th><th>Carbs</th><th>Phosphorus</th><th>Potassium</th>
-            </tr>
-          </thead>
-          <tbody>`;
-
-        for (const item of grouped[key]) {
-          html += `
-      <tr>
-        <td>${item.name}</td>
-        <td>${item.grams}</td>
-        <td>${item.calories}</td>
-        <td>${item.protein}</td>
-        <td>${item.carbs}</td>
-        <td>${item.phosphorus}</td>
-        <td>${item.potassium}</td>
-      </tr>`;
-        }
-
-        html += `</tbody></table></div>`;
-
+    <tr>
+      <td>${item.name}</td>
+      <td>${item.grams}</td>
+      <td>${item.calories}</td>
+      <td>${item.protein}</td>
+      <td>${item.carbs}</td>
+      <td>${item.phosphorus}</td>
+      <td>${item.potassium}</td>
+    </tr>
+  `;
       }
+
+      html += `</tbody></table></div>`;
+
+    }
 
     container.innerHTML = html;
 
     // Attach event listeners to all delete buttons
     document.querySelectorAll(".delete-meal-btn").forEach(btn => {
-      btn.addEventListener("click",  () => {
+      btn.addEventListener("click", async () => {
         const mealName = btn.dataset.mealname;
         const mealTime = btn.dataset.mealtime;
         if (confirm(`Delete all entries for "${mealName}" at ${new Date(mealTime).toLocaleString()}?`)) {
-          (async () => {await deleteMealByNameAndTime(mealName, mealTime);})();
-          loadSavedMeals(); // reload view
+          await deleteMealByNameAndTime(mealName, mealTime);
+          await loadSavedMeals(); // reload view
         }
       });
     });
     document.querySelectorAll(".log-again-btn").forEach(btn => {
-      btn.addEventListener("click",  () => {
+      btn.addEventListener("click", async () => {
         const mealName = btn.dataset.name;
         const ingredients = JSON.parse(btn.dataset.ingredients);
 
@@ -266,29 +265,28 @@ async function loadSavedMeals() {
             potassium: i.potassium
           }))
         };
-        (async () => {
-          try {
-            const res = await fetch("/dashboard/api/user-meal-history", {
-              method: "POST",
-              credentials: "include",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload)
-            });
 
-            if (!res.ok) {
-              const err = await res.text();
-              console.error("❌ Failed to re-log meal:", err);
-              alert("Could not re-log meal.");
-              return;
-            }
+        try {
+          const res = await fetch("/dashboard/api/user-meal-history", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
 
-            alert("✅ Meal logged to history!");
-            window.location.href = "/dashboard/user-meal-history";
-          } catch (err) {
-            console.error("❌ Re-log error:", err);
-            alert("Unexpected error.");
+          if (!res.ok) {
+            const err = await res.text();
+            console.error("❌ Failed to re-log meal:", err);
+            alert("Could not re-log meal.");
+            return;
           }
-        })();
+
+          alert("✅ Meal logged to history!");
+          window.location.href = "/dashboard/user-meal-history";
+        } catch (err) {
+          console.error("❌ Re-log error:", err);
+          alert("Unexpected error.");
+        }
       });
     });
   } catch (err) {
@@ -335,6 +333,10 @@ function updateTotals(ingredients) {
   localStorage.setItem("mealUpdated", "true");
 }
 
-
-
-
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    removeRow,
+    getDefinedMealIngredients,
+    loadSavedMeals
+  };
+}

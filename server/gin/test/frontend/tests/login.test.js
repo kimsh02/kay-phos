@@ -18,12 +18,16 @@
  *    - use jQuery event handlers like $('#submit').click() directly (we test login() directly)
  */
 
+
 const $ = require("jquery");
 global.$ = global.jQuery = $;
 
-let login;
+const login = require("../../../public/js/login.js"); // ✅ Load once, track correctly
+
 
 beforeEach(() => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    jest.spyOn(console, "log").mockImplementation(() => {});
     document.body.innerHTML = `
     <form class="login-form">
       <input type="text" id="username" />
@@ -39,7 +43,6 @@ beforeEach(() => {
 
 test("shows error if fields are empty", () => {
     $.ajax = jest.fn(); // stub ajax to prevent real calls
-    login = require("../../../public/js/login.js");
 
     const mockEvent = { preventDefault: jest.fn() };
     login(mockEvent);
@@ -61,7 +64,6 @@ test("sends ajax on valid login", () => {
         }
     }));
 
-    login = require("../../../public/js/login.js");
 
     const mockEvent = { preventDefault: jest.fn() };
     login(mockEvent);
@@ -96,7 +98,6 @@ test("shows error if backend returns 'Incorrect password'", () => {
         }
     }));
 
-    login = require("../../../public/js/login.js");
 
     const mockEvent = { preventDefault: jest.fn() };
     login(mockEvent);
@@ -125,8 +126,6 @@ test("redirects to /dashboard on successful login", () => {
     delete window.location;
     window.location = { href: "" };
 
-    login = require("../../../public/js/login.js");
-
     const mockEvent = { preventDefault: jest.fn() };
     login(mockEvent);
 
@@ -136,5 +135,101 @@ test("redirects to /dashboard on successful login", () => {
     expect(window.location.href).toBe("/dashboard");
 
     jest.useRealTimers();
+});
+
+test("shows error for user not found", () => {
+    $("#username").val("ghost");
+    $("#password").val("whatever");
+
+    $.ajax = jest.fn(() => ({
+        done: function () { return this; },
+        fail: function (cb) {
+            cb({
+                status: 400,
+                responseJSON: { error: "User not found" }
+            });
+            return this;
+        }
+    }));
+
+    const login = require("../../../public/js/login.js");
+    login({ preventDefault: () => {} });
+
+    expect($("#rxData").text()).toBe("Wrong username");
+});
+
+test("shows fallback error for unknown 400 error", () => {
+    $("#username").val("bad");
+    $("#password").val("bad");
+
+    $.ajax = jest.fn(() => ({
+        done: function () { return this; },
+        fail: function (cb) {
+            cb({
+                status: 400,
+                responseJSON: { error: "Unknown error" }
+            });
+            return this;
+        }
+    }));
+
+    const login = require("../../../public/js/login.js");
+    login({ preventDefault: () => {} });
+
+    expect($("#rxData").text()).toBe("Invalid username or password");
+});
+
+test("shows error if server is down", () => {
+    $("#username").val("test");
+    $("#password").val("test");
+
+    $.ajax = jest.fn(() => ({
+        done: function () { return this; },
+        fail: function (cb) {
+            cb({ status: 0 });
+            return this;
+        }
+    }));
+
+    const login = require("../../../public/js/login.js");
+    login({ preventDefault: () => {} });
+
+    expect($("#rxData").text()).toMatch(/server not responding/i);
+});
+
+test("shows error for unexpected status", () => {
+    $("#username").val("admin");
+    $("#password").val("admin");
+
+    $.ajax = jest.fn(() => ({
+        done: function () { return this; },
+        fail: function (cb) {
+            cb({ status: 500 });
+            return this;
+        }
+    }));
+
+    const login = require("../../../public/js/login.js");
+    login({ preventDefault: () => {} });
+
+    expect($("#rxData").text()).toBe("Unexpected error occurred.");
+});
+
+test("shows fallback message when no message received from backend", () => {
+    $("#username").val("joe");
+    $("#password").val("pass");
+
+    $.ajax = jest.fn(() => ({
+        done: function (cb) {
+            cb({}); // 👈 no message property
+            return this;
+        },
+        fail: function () { return this; }
+    }));
+
+    const login = require("../../../public/js/login.js");
+    login({ preventDefault: () => {} });
+
+    expect($("#rxData").text()).toBe("Login failed: No message received.");
 });
 

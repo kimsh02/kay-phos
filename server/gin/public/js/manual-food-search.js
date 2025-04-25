@@ -1,3 +1,9 @@
+if (typeof window !== "undefined") {
+  selectedFoods = window.selectedFoods || [];
+  analysisResults = window.analysisResults || [];
+  window.selectedFoods = selectedFoods;
+  window.analysisResults = analysisResults;
+}
 let allResults = []; // Store all fetched results so we can sort/filter without re-fetching
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -332,6 +338,12 @@ function updateTotals(ingredients) {
   localStorage.setItem("totalPotassium", newK);
   localStorage.setItem("totalPhosphorus", newP);
   localStorage.setItem("mealUpdated", "true");
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    updateTotals
+  };
 }
 
 
