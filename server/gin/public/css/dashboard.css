@@ -163,6 +163,12 @@ body {
     margin-top: 10px; /* Adds space above the first item */
   }
 
+  .navbar__btn {
+    margin-right: 0;
+    margin-bottom: 10px; /* Adds space between menu items */
+    width: 100%;
+    text-align: center;
+  }
   .navbar__menu.active {
     background: #FFF;
     top: 100%;
@@ -188,8 +194,6 @@ body {
     margin: 5px auto;
     transition: all 0.3s ease-in-out;
     background: #fff;
-    display: block;
-    cursor: pointer;
   }
 
   .navbar__item {
@@ -223,6 +227,10 @@ body {
     transform: translate(5%, 20%);
   }
 
+  .navbar__toggle .bar {
+    display: block;
+    cursor: pointer;
+  }
 
   #mobile-menu.is-active .bar:nth-child(2) {
     opacity: 0;
