@@ -7,10 +7,31 @@ import "time"
  * created, updated, or retrieved from the database
  */
 
-type FnddsMeal struct {
-	// UserID      string    `json:"userid"`
-	Description string    `json:"description"`
-	Potassium   float64   `json:"potassium"`
-	Phosphorus  float64   `json:"phosphorus"`
-	Time        time.Time `json:"time"`
+type Ingredient struct {
+	Name       string  `json:"name"`
+	Grams      float64 `json:"grams"`
+	Calories   float64 `json:"calories"`
+	Protein    float64 `json:"protein"`
+	Carbs      float64 `json:"carbs"`
+	Phosphorus float64 `json:"phosphorus"`
+	Potassium  float64 `json:"potassium"`
+}
+
+type MealGroup struct {
+	MealName    string       `json:"mealName"`
+	Time        time.Time    `json:"time"`
+	MealType    string       `json:"mealType"`
+	Ingredients []Ingredient `json:"ingredients"`
+}
+
+type MealEntry struct {
+	MealName   string    `json:"mealName"`
+	Time       time.Time `json:"time"`
+	Name       string    `json:"name"`
+	Grams      float64   `json:"grams"`
+	Calories   float64   `json:"calories"`
+	Protein    float64   `json:"protein"`
+	Carbs      float64   `json:"carbs"`
+	Phosphorus float64   `json:"phosphorus"`
+	Potassium  float64   `json:"potassium"`
 }
