@@ -259,10 +259,6 @@ async function startConversationWithImage(imageFile) {
     let token_data;
     try {
         token_data = await getAccessToken();
-        if (!token_data) {
-            console.error("No token available, stopping startConversationWithImage.");
-            return;
-        }
         authData.access_token = token_data.access_token;
         authData.customer_id = token_data.customer_id
     } catch (error) {

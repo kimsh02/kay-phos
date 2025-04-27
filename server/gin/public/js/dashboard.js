@@ -1,3 +1,14 @@
+
+const menu = document.querySelector('#mobile-menu');
+const menuLinks = document.querySelector('.navbar__menu');
+
+if(menu && menuLinks) {
+  menu.addEventListener('click', function () {
+    menu.classList.toggle('is-active');
+    menuLinks.classList.toggle('active');
+  });
+}
+
 async function loadWelcomeName() {
   try {
     const res = await fetch("/dashboard/api/user-info", { credentials: "include" });
@@ -126,5 +137,4 @@ module?.exports && Object.assign(module.exports, {
   initializeTotals,   // optional
   updateDateTime,
 });
-
 
