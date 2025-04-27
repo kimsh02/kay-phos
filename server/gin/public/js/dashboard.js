@@ -124,3 +124,11 @@ if (typeof module !== "undefined" && module.exports) {
   module.exports = { loadWelcomeName, updatePieCharts, initializeTotals,updateDateTime};
 }
 
+const menu = document.querySelector('#mobile-menu');
+const menuLinks = document.querySelector('.navbar__menu');
+
+menu.addEventListener('click', function() {
+  menu.classList.toggle('is-active');
+  menuLinks.classList.toggle('active');
+});
+

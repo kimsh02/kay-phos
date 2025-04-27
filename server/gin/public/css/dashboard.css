@@ -10,6 +10,7 @@ body {
   background-color: #f4ede5;
 }
 
+/* Navbar Styles */
 .navbar {
   background: #AB0520;
   height: 80px;
@@ -52,19 +53,8 @@ body {
   width: 60px;
 }
 
-#welcomeMessage {
-  font-size: 2.5rem; /* Adjust the font size as desired */
-  font-weight: bold; /* Make the text bold (optional) */
-  color: #8B0015; /* Change text color if needed */
-}
-
 .blue-text {
-  color: #0C234B; /* Set the text color to blue */
-}
-
-
-.fa-gem {
-  margin-right: 0.5rem;
+  color: #0C234B;
 }
 
 .navbar__menu {
@@ -74,31 +64,25 @@ body {
   text-align: center;
 }
 
-.navbar__btn .button {
-  color: white; /* Set text color to white */
-  text-decoration: none;
-  padding: 10px 20px;
-  border: none;
-  background: none;
-  font-size: 16px;
-  background-color: #AB0520; /* Set background color to red */
-}
-
-.navbar__item {
-  height: 80px;
-}
-
 .navbar__links {
-  color: #fff; /* Text color (white) */
-  background: #AB0520; /* Set background color to red */
+  color: #fff;
+  background: #AB0520;
   display: flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
   padding: 0 1rem;
   height: 100%;
-  border-radius: 4px; /* Optional: Add rounded corners */
-  transition: background 0.3s ease; /* Smooth transition for hover effect */
+  border-radius: 4px;
+  transition: background 0.3s ease;
+}
+
+.navbar__links:hover {
+  background: darkred;
+}
+
+.navbar__item {
+  height: 80px;
 }
 
 .navbar__btn {
@@ -110,10 +94,52 @@ body {
   color: #fff;
 }
 
+.navbar__btn .button {
+  color: white;
+  text-decoration: none;
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  font-size: 16px;
+  background-color: #AB0520;
+}
+
+@media screen and (max-width: 480px) {
+  .footer__link--items {
+    margin: 0;
+    padding: 10px;
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 960px) {
+  .services__container {
+    flex-direction: column;
+  }
+
+  .services__card {
+    margin-top: 1rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .services__container {
+    flex-direction: column; /* Ensure column layout for very small screens */
+  }
+
+  .services__card {
+    margin-top: 1rem; /* Move cards slightly higher on very small screens */
+    flex-grow: 1;
+    flex-shrink: 0;
+    flex-basis: auto; /* Allow the card to resize */
+    width: 100%; /* Make sure the card takes the full width */
+  }
+}
+
 .button {
   display: block;
-  width: 100%; /* Set the button width to 100% of the card */
-  height: 100%; /* Set the button height to 100% of the card */
+  width: 100%;
+  height: 100%;
   padding: 0;
   border: none;
   background: none;
@@ -122,7 +148,7 @@ body {
 .button-image {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Ensure the image covers the button area without distortion */
+  object-fit: cover;
   display: block;
 }
 
@@ -131,69 +157,52 @@ body {
   transition: all 0.3s ease;
 }
 
-.navbar__links:hover {
-  background: darkred; /* Change background color on hover */
+/* Hamburger Icon */
+.navbar__toggle {
+  display: none;
+  cursor: pointer;
 }
 
+.bar {
+  display: block;
+  width: 25px;
+  height: 3px;
+  margin: 5px auto;
+  background-color: #fff;
+}
+
+/* Hamburger Icon */
+.navbar__toggle {
+  display: none;
+  cursor: pointer;
+}
+
+.bar {
+  display: block;
+  width: 25px;
+  height: 3px;
+  margin: 5px auto;
+  background-color: #fff;
+}
+
+/* Responsive Design */
 @media screen and (max-width: 960px) {
-  .navbar__container {
-    display: flex;
-    justify-content: space-between;
-    height: 80px;
-    z-index: 1;
-    width: 100%;
-    max-width: 1300px;
-    padding: 0;
+  .navbar__toggle {
+    display: block; /* Display hamburger menu */
   }
 
   .navbar__menu {
-    display: grid;
-    grid-template-columns: auto;
-    margin: 0;
+    display: none; /* Hide menu items */
+    flex-direction: column; /* Stack menu vertically */
     width: 100%;
     position: absolute;
-    top: -1000px;
-    opacity: 1;
-    transition: all 0.5s ease;
-    height: 50vh;
-    z-index: -1;
+    top: 80px;
+    left: 0;
+    background: #AB0520;
   }
 
-  .navbar__btn:first-child {
-    margin-top: 10px; /* Adds space above the first item */
-  }
-
-  .navbar__btn {
-    margin-right: 0;
-    margin-bottom: 10px; /* Adds space between menu items */
-    width: 100%;
-    text-align: center;
-  }
   .navbar__menu.active {
-    background: #FFF;
-    top: 100%;
-    opacity: 1;
-    transition: all 0.5s ease;
-    z-index: 99;
-    height: 50vh;
-    font-size: 1.6rem;
-  }
-
-  #navbar__logo {
-    padding-left: 25px;
-    color: red; /* Set text color to red */
-    text-decoration: none; /* Optional: Remove any underline */
-    font-size: 2rem; /* Optional: Adjust the font size as needed */
-    cursor: pointer; /* Optional: Change cursor to pointer */
-  }
-
-
-  .navbar__toggle .bar {
-    width: 25px;
-    height: 3px;
-    margin: 5px auto;
-    transition: all 0.3s ease-in-out;
-    background: #fff;
+    display: flex; /* Show menu items */
   }
 
   .navbar__item {
@@ -206,30 +215,45 @@ body {
     width: 100%;
     display: table;
   }
+}
 
-  .navbar__btn {
-    padding-bottom: 3rem;
-  }
-
-  .button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 80%;
-    height: 80px;
+@media screen and (max-width: 480px) {
+  .footer__link--items {
     margin: 0;
+    padding: 10px;
+    width: 100%;
   }
+}
+
+@media screen and (max-width: 960px) {
+  .services__container {
+    flex-direction: column;
+  }
+
+  .services__card {
+    margin-top: 1rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .services__container {
+    flex-direction: column; /* Ensure column layout for very small screens */
+  }
+
+  .services__card {
+    margin-top: 1rem; /* Move cards slightly higher on very small screens */
+    flex-grow: 1;
+    flex-shrink: 0;
+    flex-basis: auto; /* Allow the card to resize */
+    width: 100%; /* Make sure the card takes the full width */
+  }
+}
 
   #mobile-menu {
     position: absolute;
     top: 20%;
     right: 5%;
     transform: translate(5%, 20%);
-  }
-
-  .navbar__toggle .bar {
-    display: block;
-    cursor: pointer;
   }
 
   #mobile-menu.is-active .bar:nth-child(2) {
@@ -243,7 +267,6 @@ body {
   #mobile-menu.is-active .bar:nth-child(3) {
     transform: translateY(-8px) rotate(-45deg);
   }
-}
 
 /* Main Content CSS */
 .main {
