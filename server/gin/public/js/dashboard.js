@@ -120,7 +120,11 @@ document.addEventListener("DOMContentLoaded", () => {
 initializeTotals();
 loadWelcomeName();
 
-if (typeof module !== "undefined" && module.exports) {
-  module.exports = { loadWelcomeName, updatePieCharts, initializeTotals,updateDateTime};
-}
+module?.exports && Object.assign(module.exports, {
+  loadWelcomeName,
+  updatePieCharts,      // optional
+  initializeTotals,   // optional
+  updateDateTime,
+});
+
 

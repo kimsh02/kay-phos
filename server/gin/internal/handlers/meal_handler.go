@@ -21,12 +21,15 @@ type mealInsertRequest struct {
 	Entries []mealEntryRequest `json:"entries"`
 }
 
+const s = "Invalid user token"
+
 // POST /dashboard/user-meal-history
 func (app *App) InsertMealHistory(c *gin.Context) {
 	claims := c.MustGet("claims").(*models.Claims)
 	userID, err := uuid.Parse(claims.UserID)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user token"})
+
+		c.JSON(http.StatusUnauthorized, gin.H{"error": s})
 		return
 	}
 
@@ -59,24 +62,6 @@ func (app *App) InsertMealHistory(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid meal type"})
 			return
 		}
-	}
-
-	// Legacy fallback
-	var legacy struct {
-		Entries []struct {
-			FoodCode int       `json:"foodCode"`
-			Time     time.Time `json:"time"`
-		} `json:"entries"`
-	}
-	if err := c.ShouldBindJSON(&legacy); err == nil && len(legacy.Entries) > 0 {
-		for _, entry := range legacy.Entries {
-			if err := repositories.InsertMeal(app.DB, userID, entry.FoodCode, entry.Time); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert legacy meal entry"})
-				return
-			}
-		}
-		c.JSON(http.StatusCreated, gin.H{"message": "Legacy meals saved successfully"})
-		return
 	}
 
 	// Debug: log full body if format is invalid
@@ -148,7 +133,7 @@ func (a *App) GetLoggedMeals(c *gin.Context) {
 	claims := c.MustGet("claims").(*models.Claims)
 	userID, err := uuid.Parse(claims.UserID)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user token"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": s})
 		return
 	}
 
@@ -166,7 +151,7 @@ func (app *App) DeleteMealEntry(c *gin.Context) {
 	claims := c.MustGet("claims").(*models.Claims)
 	userID, err := uuid.Parse(claims.UserID)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid user token"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": s})
 		return
 	}
 

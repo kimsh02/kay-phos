@@ -45,6 +45,7 @@ function login(event) {
             }
         })
         .fail(function (jqXHR, textStatus, errorThrown) {
+            let errorMsg;
             console.log("AJAX Error:", jqXHR);
             console.log("Text Status:", textStatus);
             console.log("Error Thrown:", errorThrown);
@@ -54,7 +55,7 @@ function login(event) {
                 console.log("Error Response JSON:", jqXHR.responseJSON);
                 //checking error
                 if (jqXHR.responseJSON.error === "User not found") {
-                    var errorMsg = "Wrong username";
+                    errorMsg = "Wrong username";
                 } else if (jqXHR.responseJSON.error === "Incorrect password") {
                     errorMsg = "Wrong password";
                 } else {

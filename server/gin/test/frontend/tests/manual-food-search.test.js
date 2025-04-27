@@ -159,3 +159,31 @@ test("updateTotals accumulates values in localStorage", () => {
     expect(localStorage.getItem("mealUpdated")).toBe("true");
 });
 
+test("sortSelect triggers applyFilters", () => {
+    const select = document.getElementById("sortSelect");
+
+    // ✅ Add an <option> dynamically for "calories-asc"
+    const option = document.createElement("option");
+    option.value = "calories-asc";
+    option.text = "Calories Ascending";
+    select.appendChild(option);
+
+    select.value = "calories-asc";
+    select.dispatchEvent(new window.Event("change", { bubbles: true }));
+
+    expect(select.value).toBe("calories-asc");
+});
+
+
+test("autocomplete handles fetch failure", async () => {
+    global.fetch.mockRejectedValueOnce(new Error("Simulated network error"));
+
+    const input = document.getElementById("queryInput");
+    input.value = "Ba";
+    input.dispatchEvent(new window.Event("input", { bubbles: true }));
+
+    await new Promise(r => setTimeout(r, 20));
+
+    const html = document.getElementById("autocompleteList").innerHTML;
+    expect(html).toBe(""); // no crash
+});

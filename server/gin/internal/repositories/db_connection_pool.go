@@ -21,7 +21,7 @@ import (
 // 	return strings.TrimSpace(string(output))
 // }
 
-func prepareSQLStatements(config *pgxpool.Config) {
+func PrepareSQLStatements(config *pgxpool.Config) {
 	// update: ts_rank
 	config.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
 		// Prepare fndds search query
@@ -75,7 +75,7 @@ func NewDBConnectionPool() (*pgxpool.Pool, error) {
 	config.MaxConns = 50
 
 	// Prepare SQL statements
-	prepareSQLStatements(config)
+	PrepareSQLStatements(config)
 
 	// Create DB pool
 	dbPool, err := pgxpool.NewWithConfig(context.Background(), config)

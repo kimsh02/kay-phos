@@ -1,6 +1,6 @@
 if (typeof window !== "undefined") {
-  selectedFoods = window.selectedFoods || [];
-  analysisResults = window.analysisResults || [];
+  const selectedFoods = window.selectedFoods || [];
+  const analysisResults = window.analysisResults || [];
   window.selectedFoods = selectedFoods;
   window.analysisResults = analysisResults;
 }
@@ -340,11 +340,9 @@ function updateTotals(ingredients) {
   localStorage.setItem("mealUpdated", "true");
 }
 
-if (typeof module !== "undefined" && module.exports) {
-  module.exports = {
-    updateTotals
-  };
-}
+module?.exports && Object.assign(module.exports, {
+  updateTotals
+})
 
 
 

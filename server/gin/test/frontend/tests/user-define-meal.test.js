@@ -252,4 +252,16 @@ test("clicking re-log button sends POST with history mealType", async () => {
     expect(calledWithURL).toBe(true);
 });
 
+test("Save & Log Meal fails if POST fails", async () => {
+    global.fetch.mockResolvedValueOnce({ ok: false });
+    global.fetch.mockResolvedValueOnce({ ok: false });
+
+    const logBtn = document.querySelector(".log-btn");
+    expect(logBtn).not.toBeNull();
+
+    logBtn.click();
+    await new Promise((r) => setTimeout(r, 30));
+
+    expect(global.alert).toHaveBeenCalledWith(expect.stringContaining("Nothing to log."));
+});
 

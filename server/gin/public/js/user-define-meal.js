@@ -173,116 +173,127 @@ async function saveMeal() {
 
 async function loadSavedMeals() {
   try {
-    const res = await fetch("/dashboard/api/user-meal-history", {credentials: "include"});
-    const meals = await res.json();
-
+    const meals = await fetchMeals();
     const container = document.getElementById("mealHistory");
+
     if (!meals || meals.length === 0) {
       container.innerHTML = "<p>No meals saved yet.</p>";
       return;
     }
 
-    // Group by meal name + time
-    const grouped = {};
-    for (const entry of meals) {
-      const key = `${entry.mealName}||${entry.time}`;
-      if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(entry);
-    }
+    const groupedMeals = groupMeals(meals);
+    container.innerHTML = generateMealsHTML(groupedMeals);
 
-    let html = "";
+    setupDeleteButtons();
+    setupLogAgainButtons();
+  } catch (err) {
+    console.error("Failed to load meal history", err);
+    document.getElementById("mealHistory").innerHTML = "<p>Could not load meal history.</p>";
+  }
+}
 
-    for (const key in grouped) {
-      const meal = grouped[key][0];
-      const mealTime = new Date(meal.time).toLocaleString();
-      const ingredients = meal.ingredients;
+async function fetchMeals() {
+  const res = await fetch("/dashboard/api/user-meal-history", { credentials: "include" });
+  return res.json();
+}
 
-      // ✅ Calculate totals
-      const totals = ingredients.reduce((acc, item) => {
-        acc.grams += item.grams || 0;
-        acc.calories += item.calories || 0;
-        acc.protein += item.protein || 0;
-        acc.carbs += item.carbs || 0;
-        acc.phosphorus += item.phosphorus || 0;
-        acc.potassium += item.potassium || 0;
-        return acc;
-      }, {grams: 0, calories: 0, protein: 0, carbs: 0, phosphorus: 0, potassium: 0});
+function groupMeals(meals) {
+  return meals.reduce((grouped, entry) => {
+    const key = `${entry.mealName}||${entry.time}`;
+    grouped[key] = grouped[key] || [];
+    grouped[key].push(entry);
+    return grouped;
+  }, {});
+}
 
-      html += `
-        <table class="meal-table">
-          <thead>
-            <tr class="meal-subheader">
-              <th colspan="7">
-                <strong>${meal.mealName}</strong> <small>(${mealTime})</small>
-                <button class="log-again-btn" data-name="${meal.mealName}" data-ingredients='${JSON.stringify(meal.ingredients)}'>Log This Meal Again</button>
-                <button class="delete-meal-btn" data-mealname="${meal.mealName}" data-mealtime="${meal.time}">🗑 Delete</button>
-              </th>
-            </tr>
-            <tr>
-              <th>Ingredient</th><th>Grams</th><th>Calories</th><th>Protein</th><th>Carbs</th><th>Phosphorus</th><th>Potassium</th>
-            </tr>
-          </thead>
-          <tbody>
-        `;
+function generateMealsHTML(grouped) {
+  let html = "";
 
-      for (const ing of ingredients) {
-        html += `
-          <tr>
-            <td>${ing.name}</td>
-            <td>${ing.grams}</td>
-            <td>${ing.calories}</td>
-            <td>${ing.protein}</td>
-            <td>${ing.carbs}</td>
-            <td>${ing.phosphorus}</td>
-            <td>${ing.potassium}</td>
+  for (const key in grouped) {
+    const meal = grouped[key][0];
+    const mealTime = new Date(meal.time).toLocaleString();
+    const ingredients = meal.ingredients;
+
+    const totals = ingredients.reduce((acc, item) => {
+      acc.grams += item.grams || 0;
+      acc.calories += item.calories || 0;
+      acc.protein += item.protein || 0;
+      acc.carbs += item.carbs || 0;
+      acc.phosphorus += item.phosphorus || 0;
+      acc.potassium += item.potassium || 0;
+      return acc;
+    }, { grams: 0, calories: 0, protein: 0, carbs: 0, phosphorus: 0, potassium: 0 });
+
+    html += `
+      <table class="meal-table">
+        <thead>
+          <tr class="meal-subheader">
+            <th colspan="7">
+              <strong>${meal.mealName}</strong> <small>(${mealTime})</small>
+              <button class="log-again-btn" data-name="${meal.mealName}" data-ingredients='${JSON.stringify(meal.ingredients)}'>Log This Meal Again</button>
+              <button class="delete-meal-btn" data-mealname="${meal.mealName}" data-mealtime="${meal.time}">🗑 Delete</button>
+            </th>
           </tr>
-        `;
+          <tr>
+            <th>Ingredient</th><th>Grams</th><th>Calories</th><th>Protein</th><th>Carbs</th><th>Phosphorus</th><th>Potassium</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${ingredients.map(ing => `
+            <tr>
+              <td>${ing.name}</td>
+              <td>${ing.grams}</td>
+              <td>${ing.calories}</td>
+              <td>${ing.protein}</td>
+              <td>${ing.carbs}</td>
+              <td>${ing.phosphorus}</td>
+              <td>${ing.potassium}</td>
+            </tr>
+          `).join('')}
+          <tr class="nutrient-summary">
+            <td><strong>Total</strong></td>
+            <td>${totals.grams}</td>
+            <td>${totals.calories}</td>
+            <td>${totals.protein}</td>
+            <td>${totals.carbs}</td>
+            <td>${totals.phosphorus}</td>
+            <td>${totals.potassium}</td>
+          </tr>
+        </tbody>
+      </table><br>
+    `;
+  }
+
+  return html;
+}
+
+function setupDeleteButtons() {
+  document.querySelectorAll(".delete-meal-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const { mealname: mealName, mealtime: mealTime } = btn.dataset;
+      if (confirm(`Delete all entries for "${mealName}" at ${new Date(mealTime).toLocaleString()}?`)) {
+        await deleteMealByNameAndTime(mealName, mealTime);
+        await loadSavedMeals();
       }
-
-      // ✅ Now append the total row AFTER the ingredients
-      html += `
-        <tr class="nutrient-summary">
-          <td><strong>Total</strong></td>
-          <td>${totals.grams}</td>
-          <td>${totals.calories}</td>
-          <td>${totals.protein}</td>
-          <td>${totals.carbs}</td>
-          <td>${totals.phosphorus}</td>
-          <td>${totals.potassium}</td>
-        </tr>
-      `;
-
-      html += `</tbody></table><br>`;
-    }
-
-
-    container.innerHTML = html;
-
-    // Attach event listeners to all delete buttons
-    document.querySelectorAll(".delete-meal-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const mealName = btn.dataset.mealname;
-        const mealTime = btn.dataset.mealtime;
-        if (confirm(`Delete all entries for "${mealName}" at ${new Date(mealTime).toLocaleString()}?`)) {
-          await deleteMealByNameAndTime(mealName, mealTime);
-          await loadSavedMeals(); // reload view
-        }
-      });
     });
-    document.querySelectorAll(".log-again-btn").forEach(btn => {
-      btn.addEventListener("click", async () => {
+  });
+}
+
+function setupLogAgainButtons() {
+  document.querySelectorAll(".log-again-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      try {
         const mealName = btn.dataset.name;
         const ingredients = JSON.parse(btn.dataset.ingredients);
 
-        // ✅ New prompt
         const portionInput = prompt("How many grams did you eat from this meal?");
         const portionGrams = parseFloat(portionInput);
+
         if (isNaN(portionGrams) || portionGrams <= 0) {
           alert("Invalid portion size. Please enter a number.");
           return;
         }
 
-        // ✅ Calculate total original grams
         const totalGrams = ingredients.reduce((sum, i) => sum + (i.grams || 0), 0);
         const scaleFactor = portionGrams / totalGrams;
 
@@ -303,34 +314,31 @@ async function loadSavedMeals() {
           ingredients: scaledIngredients
         };
 
-        try {
-          const res = await fetch("/dashboard/api/user-meal-history", {
-            method: "POST",
-            credentials: "include",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(payload)
-          });
+        const res = await fetch("/dashboard/api/user-meal-history", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
 
-          if (!res.ok) {
-            const err = await res.text();
-            console.error("❌ Failed to re-log meal:", err);
-            alert("Could not re-log meal.");
-            return;
-          }
-
-          alert("✅ Meal logged!");
-          window.location.href = "/dashboard/user-meal-history";
-        } catch (err) {
-          console.error("❌ Re-log error:", err);
-          alert("Unexpected error.");
+        if (!res.ok) {
+          const err = await res.text();
+          console.error("❌ Failed to re-log meal:", err);
+          alert("Could not re-log meal.");
+          return;
         }
-      });
+
+        alert("✅ Meal logged!");
+        window.location.href = "/dashboard/user-meal-history";
+
+      } catch (err) {
+        console.error("❌ Re-log error:", err);
+        alert("Unexpected error.");
+      }
     });
-  }catch (err) {
-    console.error("Failed to load meal history", err);
-    document.getElementById("mealHistory").innerHTML = "<p>Could not load meal history.</p>";
-  }
+  });
 }
+
 
 async function deleteMealByNameAndTime(mealName, time) {
   try {
@@ -370,10 +378,8 @@ function updateTotals(ingredients) {
   localStorage.setItem("mealUpdated", "true");
 }
 
-if (typeof module !== "undefined" && module.exports) {
-  module.exports = {
+module?.exports && Object.assign(module.exports, {
     removeRow,
     getDefinedMealIngredients,
     loadSavedMeals
-  };
-}
+})

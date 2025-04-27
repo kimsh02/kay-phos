@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/kimsh02/kay-phos/server/gin/internal/repositories"
 	"github.com/kimsh02/kay-phos/server/gin/test/testutils"
 	"net/http"
 	"net/http/httptest"
@@ -47,7 +48,7 @@ func TestCalculateIntake_Mocked(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	// ✅ Mock FnddsRepo
-	mockRepo := new(testutils.MockFnddsRepo)
+	mockRepo := new(repositories.MockFnddsRepo)
 	mockData := []models.FnddsFoodItem{
 		{
 			FoodCode:    1234,
@@ -102,7 +103,7 @@ func TestCalculateIntake_Mocked(t *testing.T) {
 func TestSearchFood_Mocked(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	mockRepo := new(testutils.MockFnddsRepo)
+	mockRepo := new(repositories.MockFnddsRepo)
 	mockData := []models.FnddsFoodItem{
 		{
 			FoodCode:    9876,
@@ -172,7 +173,7 @@ func TestAutocompleteSuggestions_Mocked(t *testing.T) {
 func TestGetFoodCode_Success(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	mockRepo := new(testutils.MockFnddsRepo)
+	mockRepo := new(repositories.MockFnddsRepo)
 	mockRepo.On("FnddsQuery", mock.Anything, "banana").Return(&[]models.FnddsFoodItem{{Description: "banana", FoodCode: 1234}}, nil)
 
 	app := &App{FnddsRepo: mockRepo}
@@ -190,7 +191,7 @@ func TestGetFoodCode_Success(t *testing.T) {
 func TestGetFoodCode_NotFound(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
-	mockRepo := new(testutils.MockFnddsRepo)
+	mockRepo := new(repositories.MockFnddsRepo)
 	mockRepo.On("FnddsQuery", mock.Anything, "nonexistent").Return(&[]models.FnddsFoodItem{}, nil)
 
 	app := &App{FnddsRepo: mockRepo}

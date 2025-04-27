@@ -250,6 +250,10 @@ async function startConversationWithImage(imageFile) {
     let token_data;
     try {
         token_data = await getAccessToken();
+        if (!token_data) {
+            console.error("No token available, stopping startConversationWithImage.");
+            return;
+        }
         authData.access_token = token_data.access_token;
         authData.customer_id = token_data.customer_id
     } catch (error) {
@@ -278,7 +282,6 @@ async function startConversationWithImage(imageFile) {
         if (result.threadId) {
             const extractedData = await sendMessageToThread(result.threadId, base64Image, accessToken);
             console.log("⏳ Waiting for API to process image...");
-            await new Promise(resolve => setTimeout(resolve, 2000)); // 2-second delay
             return extractedData;
 
         }
@@ -570,17 +573,16 @@ if (typeof window !== "undefined") {
     window.displayAnalysisResults = displayAnalysisResults;
 }
 
-if (typeof module !== "undefined" && module.exports) {
-    module.exports = {
-        LogMeal,
-        displayAnalysisResults, // optional, for other tests
-        saveMealToHistory,      // optional
-        sendSelectedFoodsToDB,   // optional
-        displayServerMessage,
-        displayToast,
-        toggleSelection,
-        updateTotals
-    };
-}
+module?.exports && Object.assign(module.exports, {
+    LogMeal,
+    saveMealToHistory,      // optional
+    sendSelectedFoodsToDB,   // optional
+    displayServerMessage,
+    sendMessageToThread,
+    displayToast,
+    toggleSelection,
+    updateTotals
+});
+
 
 

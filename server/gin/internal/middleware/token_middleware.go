@@ -11,42 +11,16 @@ import (
 
 func ValidateTokenMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Attempt to grab the token cookie
 		tokenString, err := c.Cookie("token")
 		if err != nil {
-			if gin.Mode() == gin.TestMode {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
-			} else {
-				c.HTML(http.StatusUnauthorized, "unauthorized.html", gin.H{
-					"title":   "Access Denied",
-					"message": "Please login to continue.",
-				})
-			}
-			c.Abort()
+			handleUnauthorized(c, "Missing token")
 			return
 		}
 
-		//Parse and Validate the JWT
 		claims := &models.Claims{}
-		parsedToken, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-			}
-			secret := os.Getenv("JWT_SECRET")
-			return []byte(secret), nil
-		})
-
+		parsedToken, err := parseToken(tokenString, claims)
 		if err != nil || !parsedToken.Valid {
-			fmt.Println("Error in validating token.")
-			if gin.Mode() == gin.TestMode {
-				c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing token"})
-			} else {
-				c.HTML(http.StatusUnauthorized, "unauthorized.html", gin.H{
-					"title":   "Access Denied",
-					"message": "Your session is invalid or has expired. Please login again.",
-				})
-			}
-			c.Abort()
+			handleUnauthorized(c, "Your session is invalid or has expired. Please login again.")
 			return
 		}
 
@@ -54,4 +28,28 @@ func ValidateTokenMiddleware() gin.HandlerFunc {
 		c.Set("claims", claims)
 		c.Next()
 	}
+}
+
+// --- Helper to parse the token ---
+func parseToken(tokenString string, claims *models.Claims) (*jwt.Token, error) {
+	return jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		secret := os.Getenv("JWT_SECRET")
+		return []byte(secret), nil
+	})
+}
+
+// --- Helper to handle unauthorized responses ---
+func handleUnauthorized(c *gin.Context, message string) {
+	c.Abort()
+	if gin.Mode() == gin.TestMode {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": message})
+		return
+	}
+	c.HTML(http.StatusUnauthorized, "unauthorized.html", gin.H{
+		"title":   "Access Denied",
+		"message": message,
+	})
 }

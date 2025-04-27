@@ -153,6 +153,14 @@ test("loads and renders grouped logged meals", async () => {
     expect(document.querySelectorAll(".meal-block").length).toBe(1);
 });
 
+test("submitting date range triggers nutrient history fetch", async () => {
+    const form = document.getElementById("dateRangeForm");
+    form.dispatchEvent(new window.Event("submit", { bubbles: true }));
+
+    await new Promise(r => setTimeout(r, 20));
+    expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining("/dashboard/api/nutrient-history"), expect.anything());
+});
+
 
 
 

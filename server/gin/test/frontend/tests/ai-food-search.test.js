@@ -399,6 +399,15 @@ test("sendSelectedFoodsToDB handles fetch failure", async () => {
     expect(msg).toMatch("Please select at least one food item");
 });
 
+test("sendMessageToThread handles API failure", async () => {
+    const { sendMessageToThread } = require("../../../public/js/ai-food-search.js");
+
+    global.fetch = jest.fn()
+        .mockResolvedValueOnce({ ok: false, status: 500 }); // Fail at message send
+
+    const result = await sendMessageToThread("fakeThreadId", "base64Image", "fakeToken");
+    expect(result).toBeNull();
+});
 
 
 

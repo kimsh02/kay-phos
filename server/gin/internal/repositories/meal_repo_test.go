@@ -1,96 +1,90 @@
-// meal_repo_test.go
-//
-// ✅ What This Tests
-// - InsertCustomMeal() → saves a user-defined favorite meal
-// - InsertLoggedMeal() → logs a real meal with ingredients + totals
-// - GetMealsByUserID() → retrieves meals by user ID and mealType
-// - DeleteMealByName() → removes a named meal for a user
-//
-// 🧪 What’s Covered in This Pattern
-// ✅ Database interaction (insert → retrieve → delete)
-// ✅ Distinct mealType handling: "favorite" vs "history"
-// ✅ Basic model integrity (Ingredient + MealEntry)
-//
-// 🧪 What’s NOT Covered
-// ❌ Foreign key constraints (users table assumed dummy-safe)
-// ❌ Time-based queries (mealTime filtering)
-// ❌ Duplicate handling (inserts overwrite not tested)
-
 package repositories
 
+import (
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/kimsh02/kay-phos/server/gin/internal/models"
+	"github.com/stretchr/testify/assert"
+	"testing"
+	"time"
+)
+
 //
-//func TestInsertAndRetrieveCustomMeal(t *testing.T) {
-//	pool := mockDb.SetupTestDB(t)
-//	userID := uuid.New()
+//✅ What This Tests
+//- InsertCustomMeal() → saves a user-defined favorite meal
+//- InsertLoggedMeal() → logs a real meal with ingredients + totals
+//- GetMealsByUserID() → retrieves meals by user ID and mealType
+//- DeleteMealByName() → removes a named meal for a user
 //
-//	ingredients := []models.Ingredient{
-//		{
-//			Name:       "Rice",
-//			Grams:      100,
-//			Calories:   130,
-//			Protein:    2.6,
-//			Carbs:      28,
-//			Potassium:  35,
-//			Phosphorus: 40,
-//		},
-//		{
-//			Name:       "Tofu",
-//			Grams:      80,
-//			Calories:   144,
-//			Protein:    12,
-//			Carbs:      3,
-//			Potassium:  120,
-//			Phosphorus: 100,
-//		},
-//	}
+//🧪 What’s Covered in This Pattern
+//✅ Database interaction (insert → retrieve → delete)
+//✅ Distinct mealType handling: "favorite" vs "history"
+//✅ Basic model integrity (Ingredient + MealEntry)
 //
-//	err := repositories.InsertCustomMeal(pool, userID, "My Favorite Tofu Bowl", time.Now(), ingredients)
-//	assert.NoError(t, err)
-//
-//	// ✅ Fetch meals
-//	meals, err := repositories.GetMealsByUserID(pool, userID, "favorite")
-//	assert.NoError(t, err)
-//	assert.NotEmpty(t, meals)
-//
-//	found := false
-//	for _, m := range meals {
-//		if m.MealName == "My Favorite Tofu Bowl" {
-//			found = true
-//			assert.Len(t, meals, 2)
-//			assert.InDelta(t, 274.0, m.Calories, 0.5)
-//			break
-//		}
-//	}
-//	assert.True(t, found, "Inserted custom meal not found")
-//}
-//
-//func TestInsertAndDeleteLoggedMeal(t *testing.T) {
-//	pool := mockDb.SetupTestDB(t)
-//	userID := uuid.New()
-//
-//	ingredients := []models.Ingredient{
-//		{
-//			Name:       "Chicken",
-//			Grams:      150,
-//			Calories:   300,
-//			Protein:    30,
-//			Carbs:      0,
-//			Potassium:  350,
-//			Phosphorus: 200,
-//		},
-//	}
-//
-//	err := repositories.InsertLoggedMeal(pool, userID, "Lunch Chicken", time.Now(), ingredients)
-//	assert.NoError(t, err)
-//
-//	// ✅ Delete the meal
-//	err = repositories.DeleteMealByName(pool, userID, "Lunch Chicken")
-//	assert.NoError(t, err)
-//
-//	// ✅ Verify it's gone
-//	meals, err := repositories.GetMealsByUserID(pool, userID, "history")
-//	assert.NoError(t, err)
-//	for _, m := range meals {
-//		assert.NotEqual(t, "Lunch Chicken", m.MealName, "Meal should be deleted")
-//	}
-//}
+//🧪 What’s NOT Covered
+//❌ Foreign key constraints (users table assumed dummy-safe)
+//❌ Time-based queries (mealTime filtering)
+//❌ Duplicate handling (inserts overwrite not tested)
+
+func createRandomTestUser(t *testing.T, pool *pgxpool.Pool) *models.User {
+	user := &models.User{
+		FirstName:     "Test",
+		LastName:      "User",
+		UserName:      "testuser_" + uuid.NewString(), // randomize to avoid duplicates
+		InputPassword: "password123",
+	}
+	err := user.SetHashedPassword()
+	assert.NoError(t, err)
+	user.SetUserID()
+
+	err = CreateUser(pool, user)
+	assert.NoError(t, err)
+	return user
+}
+
+func TestInsertAndRetrieveCustomMeal(t *testing.T) {
+	pool := SetupTestDB(t)
+
+	user := createRandomTestUser(t, pool)
+
+	ingredients := []models.Ingredient{
+		{Name: "Tofu", Grams: 150, Calories: 120, Protein: 15, Carbs: 5, Phosphorus: 100, Potassium: 300},
+		{Name: "Broccoli", Grams: 100, Calories: 50, Protein: 5, Carbs: 10, Phosphorus: 50, Potassium: 200},
+	}
+
+	err := InsertCustomMeal(pool, user.UserID, "My Favorite Tofu Bowl", time.Now(), ingredients)
+	assert.NoError(t, err)
+
+	meals, err := GetMealsByUserID(pool, user.UserID, "favorite")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, meals)
+
+	found := false
+	for _, m := range meals {
+		if m.MealName == "My Favorite Tofu Bowl" {
+			found = true
+			break
+		}
+	}
+	assert.True(t, found, "Inserted custom meal not found")
+}
+
+func TestInsertAndDeleteLoggedMeal(t *testing.T) {
+	pool := SetupTestDB(t)
+
+	user := createRandomTestUser(t, pool)
+
+	ingredients := []models.Ingredient{
+		{Name: "Chicken", Grams: 200, Calories: 300, Protein: 30, Carbs: 0, Phosphorus: 200, Potassium: 400},
+	}
+
+	err := InsertLoggedMeal(pool, user.UserID, "Lunch Chicken", time.Now(), ingredients)
+	assert.NoError(t, err)
+
+	meals, err := GetMealsByUserID(pool, user.UserID, "history")
+	assert.NoError(t, err)
+	assert.NotEmpty(t, meals)
+
+	err = DeleteMealByName(pool, user.UserID, "Lunch Chicken")
+	assert.NoError(t, err)
+}
