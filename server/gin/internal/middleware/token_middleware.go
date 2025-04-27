@@ -1,47 +1,55 @@
 package middleware
 
 import (
-	"net/http"
-
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/kimsh02/kay-phos/server/gin/internal/models"
-	"github.com/kimsh02/kay-phos/server/gin/internal/services"
+	"net/http"
+	"os"
 )
-
-/*
- * User JWT token middleware
- */
 
 func ValidateTokenMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tokenString, err := c.Cookie("token")
-		// Abort if empty token
 		if err != nil {
-			c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-			// c.SetCookie("accountStatus", "not logged in", 5, "/", "localhost", false, false)
-			// log.Println("Redirect from empty token.")
-			// c.Redirect(http.StatusSeeOther, "/")
-			c.Abort()
+			handleUnauthorized(c, "Missing token")
 			return
 		}
-		// Verify token
+
 		claims := &models.Claims{}
-		token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
-			return services.JwtSecret, nil
-		})
-
-		if err != nil || !token.Valid {
-			c.IndentedJSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token."})
-			// c.SetCookie("accountStatus", "session expired", 5, "/", "localhost", false, false)
-			// log.Println("Redirect from empty invalid token.")
-			// c.Redirect(http.StatusSeeOther, "/")
-			c.Abort()
+		parsedToken, err := parseToken(tokenString, claims)
+		if err != nil || !parsedToken.Valid {
+			handleUnauthorized(c, "Your session is invalid or has expired. Please login again.")
 			return
 		}
 
-		// Pass claims to the next handler
-		c.Set("userid", claims.UserID)
+		// ✅ Passed all checks
+		c.Set("claims", claims)
 		c.Next()
 	}
+}
+
+// --- Helper to parse the token ---
+func parseToken(tokenString string, claims *models.Claims) (*jwt.Token, error) {
+	return jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		secret := os.Getenv("JWT_SECRET")
+		return []byte(secret), nil
+	})
+}
+
+// --- Helper to handle unauthorized responses ---
+func handleUnauthorized(c *gin.Context, message string) {
+	c.Abort()
+	if gin.Mode() == gin.TestMode {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": message})
+		return
+	}
+	c.HTML(http.StatusUnauthorized, "unauthorized.html", gin.H{
+		"title":   "Access Denied",
+		"message": message,
+	})
 }

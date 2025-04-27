@@ -22,17 +22,17 @@ type User struct {
 	InputPassword  string    `json:"inputpassword"`
 }
 
-// Set user id for a newly created User
+// SetUserID Set user id for a newly created User
 func (user *User) SetUserID() {
 	user.UserID = uuid.New()
 }
 
-// Verifies input password against hashed password
+// VerifyPassword Verifies input password against hashed password
 func (user *User) VerifyPassword() bool {
 	return bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(user.InputPassword)) == nil
 }
 
-// Sets hashed password for a newly created User given a password
+// SetHashedPassword Sets hashed password for a newly created User given a password
 func (user *User) SetHashedPassword() error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.InputPassword), bcrypt.DefaultCost)
 	if err != nil {
@@ -43,7 +43,7 @@ func (user *User) SetHashedPassword() error {
 	return nil
 }
 
-// Checks hashed password to the given password
+// CheckPassword Checks hashed password to the given password
 func (user *User) CheckPassword(password string) error {
 	if err := bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(password)); err != nil {
 		log.Println(err)
@@ -52,15 +52,15 @@ func (user *User) CheckPassword(password string) error {
 	return nil
 }
 
-// Check for empty password or username
+// CheckPasswordAndUsername Check for empty password or username
 func (user *User) CheckPasswordAndUsername() error {
 	// Basic check if username is empty string
 	if user.UserName == "" {
-		return errors.New("No username given.")
+		return errors.New("no username given")
 	}
 	// Basic check if password is empty string
 	if user.InputPassword == "" {
-		return errors.New("No password given.")
+		return errors.New("no password given")
 	}
 	return nil
 }

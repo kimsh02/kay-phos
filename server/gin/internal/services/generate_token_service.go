@@ -12,11 +12,9 @@ import (
 	"github.com/kimsh02/kay-phos/server/gin/internal/models"
 )
 
-// Secret key for signing JWTs
-var JwtSecret = []byte(os.Getenv("JWT_SECRET"))
-
-// Generate JWT token
+// Secret key for signing JWTs Generate JWT token
 func GenerateToken(user *models.User) (string, error) {
+	JwtSecret := []byte(os.Getenv("JWT_SECRET"))
 	claims := &models.Claims{
 		UserID: user.UserID.String(),
 		RegisteredClaims: jwt.RegisteredClaims{

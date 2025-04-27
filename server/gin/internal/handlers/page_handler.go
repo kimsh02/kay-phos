@@ -25,3 +25,6 @@ func UserDefineMealPage(c *gin.Context) {
 func UserMealHistoryPage(c *gin.Context) {
 	c.File("./public/html/user-meal-history.html")
 }
+func Settings(c *gin.Context) {
+	c.File("./public/html/settings.html")
+}
