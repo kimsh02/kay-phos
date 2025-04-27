@@ -1,5 +1,14 @@
 let chart, potassiumChart;
 
+const menu = document.querySelector('#mobile-menu');
+const menuLinks = document.querySelector('.navbar__menu');
+
+if (menu && menuLinks) {
+  menu.addEventListener('click', function () {
+    menu.classList.toggle('is-active');
+    menuLinks.classList.toggle('active');
+  });
+}
 function parseCSV(csvText) {
   const lines = csvText.trim().split("\n");
   const header = lines[0].split(",").map(h => h.trim());

@@ -105,37 +105,105 @@ body {
   background-color: #AB0520;
 }
 
+@media screen and (max-width: 480px) {
+  .footer__link--items {
+    margin: 0;
+    padding: 10px;
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 960px) {
+  .services__container {
+    flex-direction: column;
+  }
+
+  .services__card {
+    margin-top: 1rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .services__container {
+    flex-direction: column; /* Ensure column layout for very small screens */
+  }
+
+  .services__card {
+    margin-top: 1rem; /* Move cards slightly higher on very small screens */
+    flex-grow: 1;
+    flex-shrink: 0;
+    flex-basis: auto; /* Allow the card to resize */
+    width: 100%; /* Make sure the card takes the full width */
+  }
+}
+
+.button {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.button-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.button:hover {
+  background: #0C234B;
+  transition: all 0.3s ease;
+}
+
+/* Hamburger Icon */
+.navbar__toggle {
+  display: none;
+  cursor: pointer;
+}
+
+.bar {
+  display: block;
+  width: 25px;
+  height: 3px;
+  margin: 5px auto;
+  background-color: #fff;
+}
+
+/* Hamburger Icon */
+.navbar__toggle {
+  display: none;
+  cursor: pointer;
+}
+
+.bar {
+  display: block;
+  width: 25px;
+  height: 3px;
+  margin: 5px auto;
+  background-color: #fff;
+}
+
 /* Responsive Design */
 @media screen and (max-width: 960px) {
+  .navbar__toggle {
+    display: block; /* Display hamburger menu */
+  }
+
   .navbar__menu {
-    display: grid;
-    grid-template-columns: auto;
-    margin: 0;
+    display: none; /* Hide menu items */
+    flex-direction: column; /* Stack menu vertically */
     width: 100%;
     position: absolute;
-    top: -1000px;
-    opacity: 1;
-    transition: all 0.5s ease;
-    height: 50vh;
-    z-index: -1;
+    top: 80px;
+    left: 0;
+    background: #AB0520;
   }
 
   .navbar__menu.active {
-    background: #FFF;
-    top: 100%;
-    opacity: 1;
-    transition: all 0.5s ease;
-    z-index: 99;
-    height: 50vh;
-    font-size: 1.6rem;
-  }
-
-  .navbar__toggle .bar {
-    width: 25px;
-    height: 3px;
-    margin: 5px auto;
-    transition: all 0.3s ease-in-out;
-    background: #fff;
+    display: flex; /* Show menu items */
   }
 
   .navbar__item {
@@ -148,6 +216,39 @@ body {
     width: 100%;
     display: table;
   }
+}
+
+@media screen and (max-width: 480px) {
+  .footer__link--items {
+    margin: 0;
+    padding: 10px;
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: 960px) {
+  .services__container {
+    flex-direction: column;
+  }
+
+  .services__card {
+    margin-top: 1rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .services__container {
+    flex-direction: column; /* Ensure column layout for very small screens */
+  }
+
+  .services__card {
+    margin-top: 1rem; /* Move cards slightly higher on very small screens */
+    flex-grow: 1;
+    flex-shrink: 0;
+    flex-basis: auto; /* Allow the card to resize */
+    width: 100%; /* Make sure the card takes the full width */
+  }
+}
 
 
   .navbar__menu .logout {
@@ -172,7 +273,7 @@ body {
   #mobile-menu.is-active .bar:nth-child(3) {
     transform: translateY(-8px) rotate(-45deg);
   }
-}
+
 
 #logo {
   width: 15%;

@@ -8,6 +8,15 @@ if (typeof window !== "undefined") {
     if (window.analysisResults) analysisResults = window.analysisResults;
 }
 
+const menu = document.querySelector('#mobile-menu');
+const menuLinks = document.querySelector('.navbar__menu');
+
+if (menu && menuLinks) {
+    menu.addEventListener('click', function () {
+        menu.classList.toggle('is-active');
+        menuLinks.classList.toggle('active');
+    });
+}
 const inputDiv = document.querySelector(".input-div"),
     input = document.querySelector(".file"),
     serverMessage = document.querySelector(".server-message"),
