@@ -149,3 +149,26 @@ p {
 }
 
 
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .login-form {
+    width: 90%; /* Much bigger width on small devices */
+    padding: 20px;
+  }
+
+  p {
+    font-size: 36px; /* Smaller "Log in" text */
+  }
+
+  input[type="text"], input[type="password"], textarea {
+    padding: 15px;
+    font-size: 14px;
+  }
+
+  input[type="submit"], button {
+    font-size: 14px;
+    padding: 12px 20px;
+  }
+}
+
