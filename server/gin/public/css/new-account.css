@@ -23,12 +23,13 @@ label {
     color: #0C234B; /* Blue */
 }
 input {
-    width: calc(100% - 16px);
-    padding: 8px;
-    margin-bottom: 10px;
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
     border: 1px solid #0C234B;
     border-radius: 5px;
     display: block;
+    box-sizing: border-box;
 }
 .error-message {
     color: #AB0520; /* Red */
@@ -54,3 +55,20 @@ button {
 .submit-button:hover {
     opacity: 0.8;
 }
+@media screen and (max-width: 450px) {
+    .container {
+        width: 90%;
+        margin: 20px auto;
+        padding: 15px;
+    }
+
+    input {
+        width: 100%;
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+    }
+}
+

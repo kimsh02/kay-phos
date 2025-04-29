@@ -634,3 +634,10 @@ canvas {
 .card-button:hover {
   background-color: #8B0015;
 }
+
+@media screen and (max-width: 768px) {
+  .pie-charts {
+    flex-direction: column;
+    align-items: center; /* Center the charts vertically */
+  }
+}

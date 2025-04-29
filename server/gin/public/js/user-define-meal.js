@@ -387,8 +387,8 @@ function updateTotals(ingredients) {
   localStorage.setItem("mealUpdated", "true");
 }
 
-module?.exports && Object.assign(module.exports, {
-    removeRow,
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {    removeRow,
     getDefinedMealIngredients,
     loadSavedMeals
-})
+};}

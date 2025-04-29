@@ -578,16 +578,17 @@ if (typeof window !== "undefined") {
     window.displayAnalysisResults = displayAnalysisResults;
 }
 
-module?.exports && Object.assign(module.exports, {
-    LogMeal,
-    saveMealToHistory,      // optional
-    sendSelectedFoodsToDB,   // optional
-    displayServerMessage,
-    sendMessageToThread,
-    displayToast,
-    toggleSelection,
-    updateTotals
-});
-
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        LogMeal,
+        saveMealToHistory,      // optional
+        sendSelectedFoodsToDB,   // optional
+        displayServerMessage,
+        sendMessageToThread,
+        displayToast,
+        toggleSelection,
+        updateTotals
+    };
+}
 
 

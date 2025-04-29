@@ -236,7 +236,6 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
-  table-layout: fixed;
 }
 
 th, td {
@@ -361,5 +360,56 @@ button:hover {
 .nutrient-summary td {
   font-weight: bold;
   background-color: #f3f3f3;
+}
+
+/* 🌐 Responsive fixes for saved meals on mobile */
+@media screen and (max-width: 768px) {
+  .meal-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .meal-table thead,
+  .meal-table tbody,
+  .meal-table tr,
+  .meal-table th,
+  .meal-table td {
+    white-space: nowrap;
+  }
+
+  .meal-table th,
+  .meal-table td {
+    min-width: 90px; /* Force space even for narrow screens */
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  th, td {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    min-width: 90px;
+  }
+
+  /* Make input fields full width inside table cells */
+  #ingredientTable input[type="text"],
+  #ingredientTable input[type="number"] {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Prevent huge Remove buttons */
+  td button {
+    white-space: nowrap;
+    padding: 6px 10px;
+    font-size: 0.9rem;
+  }
 }
 

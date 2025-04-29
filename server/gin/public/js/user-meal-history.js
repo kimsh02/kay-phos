@@ -71,7 +71,7 @@ function renderChart(canvasId, label, labels, dataPoints, color) {
       }]
     },
     options: {
-      responsive: false,
+      responsive: true,
       scales: {
         x: { title: { display: true, text: "Date" }},
         y: { title: { display: true, text: label }}

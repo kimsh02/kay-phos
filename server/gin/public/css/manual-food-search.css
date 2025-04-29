@@ -384,3 +384,42 @@ select {
   margin-right: 10px;
   margin-top: 10px;
 }
+
+@media screen and (max-width: 600px) {
+  .result-card {
+    padding: 10px;
+  }
+
+  .result-card h3 {
+    font-size: 1rem;
+  }
+
+  .result-card ul li {
+    font-size: 0.95rem;
+  }
+
+  /* Stack buttons vertically */
+  .result-card div[style*="display: flex"] {
+    flex-direction: column !important;
+    align-items: stretch;
+  }
+
+  .result-card button {
+    margin: 6px 0 !important;
+    width: 100%;
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+
+  .search-box {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .search-box input,
+  .search-box button {
+    width: 100%;
+    max-width: 400px;
+    margin-top: 5px;
+  }
+}

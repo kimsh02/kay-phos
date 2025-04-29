@@ -131,10 +131,12 @@ document.addEventListener("DOMContentLoaded", () => {
 initializeTotals();
 loadWelcomeName();
 
-module?.exports && Object.assign(module.exports, {
-  loadWelcomeName,
-  updatePieCharts,      // optional
-  initializeTotals,   // optional
-  updateDateTime,
-});
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    loadWelcomeName,
+    updatePieCharts,      // optional
+    initializeTotals,   // optional
+    updateDateTime
+  };
+}
 

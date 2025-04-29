@@ -350,9 +350,11 @@ function updateTotals(ingredients) {
   localStorage.setItem("mealUpdated", "true");
 }
 
-module?.exports && Object.assign(module.exports, {
-  updateTotals
-})
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    updateTotals
+  };
+}
 
 
 
